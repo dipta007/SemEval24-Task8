@@ -1,11 +1,5 @@
 # SemEval-2024 Task 8: Multigenerator, Multidomain, and Multilingual Black-Box Machine-Generated Text Detection
 
-[![Code License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-green.svg)](https://raw.githubusercontent.com/mbzuai-nlp/SemEval2024-task8/subtask_A_and_B/LICENSE)
-
-<p align="left" float="left">
-  <img src="images/MBZUAI-logo.png" height="40" />
-</p>
-
 
 [Subtasks](#subtasks) | [Data Source](#data_source) | [Data Format](#data_format) | [Evaluation Metrics](#scorer_and_official_evaluation_metrics) | [Baselines](#baselines) | [FAQ](#faq) | [Organizers](#organizers) | [Contacts](#contacts)
 
@@ -21,84 +15,7 @@ We offer three subtasks over two paradigms of text generation: (1) **full text**
 
 - **Subtask C. Human-Machine Mixed Text Detection:** Given a mixed text, where the first part is human-written and the second part is machine-generated, determine the boundary, where the change occurs.
 
-## Data Restriction
-Note that additional training data is **NOT allowed** for all participants.
-
-## <a name="data_source"></a>Data Source
-The data for the task is an extension of the M4 dataset. Here are current statistics about the dataset.
-
-<p align="center" width="80%">
-    <a><img src="images/data_statistics.png" alt="Title" style="width: 80%; min-width: 250px; display: block; margin: auto;"></a>
-</p>
-
-The M4 dataset is described in the following [arXiv paper](https://arxiv.org/abs/2305.14902):
-
-```bibtex
-@article{wang2023m4,
-      title={{M4}: Multi-generator, Multi-domain, and Multi-lingual
-                   Black-Box Machine-Generated Text Detection}, 
-      author={Yuxia Wang and
-              Jonibek Mansurov and
-              Petar Ivanov and
-              Jinyan Su and
-              Artem Shelmanov and
-              Akim Tsvigun and
-              Chenxi Whitehouse and
-              Osama Mohammed Afzal and
-              Tarek Mahmoud and
-              Alham Fikri Aji and
-              Preslav Nakov},
-      year={2023},
-      journal={arXiv:2305.14902},
-      primaryClass={cs.CL}
-}
-```
-
 ## <a name="data_format"></a>Data Format
-### Data Download Instructions
-
-To download the dataset for this project, follow these steps:
-
-1. Install the `gdown` package using pip:
-
-```
-pip install gdown
-````
-
-2. Use `gdown` to download the dataset folders by providing the respective file IDs for each subtask:
-
-| Task          | Google Drive Folder Link                                                                                           | File ID                                        |
-|---------------|--------------------------------------------------------------------------------------------------------------------|------------------------------------------------|
-| Whole dataset | [Google Drive Folder](https://drive.google.com/drive/folders/14DulzxuH5TDhXtviRVXsH5e2JTY2POLi)            | 14DulzxuH5TDhXtviRVXsH5e2JTY2POLi            |
-| Subtask A     | [Google Drive Folder](https://drive.google.com/drive/folders/1CAbb3DjrOPBNm0ozVBfhvrEh9P9rAppc)            | 1CAbb3DjrOPBNm0ozVBfhvrEh9P9rAppc            |
-| Subtask B     | [Google Drive Folder](https://drive.google.com/drive/folders/11YeloR2eTXcTzdwI04Z-M2QVvIeQAU6-)            | 11YeloR2eTXcTzdwI04Z-M2QVvIeQAU6-            |
-| Subtask C     | [Google Drive Folder](https://drive.google.com/drive/folders/16bRUuoeb_LxnCkcKM-ed6X6K5t_1C6mL)            | 16bRUuoeb_LxnCkcKM-ed6X6K5t_1C6mL            |
-
-```
-gdown --folder https://drive.google.com/drive/folders/<file_id>
-```
-Make sure to replace `<file_id>` with the respective file IDs provided above when running the `gdown` command for the desired dataset.
-
-3. After downloading place the files in their respective subtask folder.
-
-
-The datasets are JSONL files.
-The data is located in the following folders:
-* **Subtask A:**
-  * Monolingual track:
-    * subtaskA/data/subtaskA_train_monolingual.jsonl
-    * subtaskA/data/subtaskA_dev_monolingual.jsonl
-  * Multilingual track:
-    * subtaskA/data/subtaskA_train_multilingual.jsonl
-    * subtaskA/data/subtaskA_dev_multilingual.jsonl
-* **Subtask B:**
-  * subtaskB/data/subtaskB_train.jsonl
-  * subtaskB/data/subtaskB_dev.jsonl
-* **Subtask C:**
-  * subtaskC/data/subtaskC_train.jsonl
-  * subtaskC/data/subtaskC_dev.jsonl
-
-
 ### Statistics
 | Subtask                     |  #Train |   #Dev  |
 |:----------------------------|--------:|--------:|
@@ -182,6 +99,10 @@ The scorer is run by the following command:
 python3 subtaskA/scorer/scorer.py --gold_file_path=<path_to_gold_labels> --pred_file_path=<path_to_your_results_file> 
 ```
 
+```
+python subtaskA/baseline/transformer_baseline.py --train_file_path=./data/SubtaskA/subtaskA_train_monolingual.jsonl --test_file_path=./data/SubtaskA/subtaskA_dev_monolingual.jsonl --subtask=A --model=roberta-large --prediction_file_path=./data/
+```
+
 ### Subtask B:
 The **official evaluation metric** for the Subtask B is **accuracy**. However, the scorer also reports macro-F1 and micro-F1. 
 
@@ -210,6 +131,10 @@ The average results for the monolingual setup across three runs for RoBERTa is 0
 
 The average results for the multilingual setup across three runs for XLM-R is 0.72;
 
+```
+
+```
+
 ### Task B
 
 Running the Transformer baseline:
@@ -228,47 +153,3 @@ The average MAE score across three runs for longformer is: 3.53 ± 0.212
 
 To modify the hyperparameters, please edit the corresponding python command within the run.sh file.
 
-## <a name="faq"></a> FAQ
-#### Q: Where should we register for this shared task?
-**A:** We will release our CodaLab soon (before 20 Nov), in which we can play around.
-
-#### Q: Should we do all subtasks or just one of them?
-**A:** You can choose any tasks in which you are interested. Also, if you just want to do English track, it is also allowed, or if you just want to do multilingual track, it is welcomed.
-
-#### Q: Are all of the deadlines alligned with the dates posted here? https://semeval.github.io/SemEval2024/
-**A:** Yes, so far all deadlines are aligned with the https://semeval.github.io/SemEval2024/ , we will make announcement if there are any changes.
-
-
-#### Q: Could you please tell me what the differences are between our task’s dataset and the M4 dataset? Are they absolutely the same?
-
-**A:** There are mainly three major differences compared to the M4 dataset: 1) task formulation is different, 2) we upsampled human text for data balance; and 3) new and surprising domains, generators and languages will appear in test sets (real test set will not include information about generators, domains and languages).
-
-#### Q: We noticed significant disproportionality between training and development sets. For example Subtask A related to machine-generated texts: the training set does not contain BLOOMz outputs, while the development set contains only them. Could you please clarify the reason for such an intriguing splitting?
-
-**A:** We split in this way because it is more aligned with the real application scenarios where many domains and generators are unseen during training. Besides, such a development set also serves as a hint to participants that totally new domains, generators and languages will be included in the real test sets (real test set will not include information about generators, domains and languages).
-
-#### Q: Whether it is allowed to use additional data?
-
-**A:** It is not allowed to use extra data.
-
-## Organizers
-
-- Yuxia Wang, Mohamed bin Zayed University of Artificial Intelligence
-- Alham Fikri Aji, Mohamed bin Zayed University of Artificial Intelligence
-- Artem Shelmanov, Mohamed bin Zayed University of Artificial Intelligence
-- Akim Tsvigun, Semrush
-- Chenxi Whitehouse, Mohamed bin Zayed University of Artificial Intelligence
-- Petar Ivanov, Sofia University
-- Jonibek Mansurov, Mohamed bin Zayed University of Artificial Intelligence
-- Jinyan Su, Mohamed bin Zayed University of Artificial Intelligence
-- Tarek Mahmoud, Mohamed bin Zayed University of Artificial Intelligence
-- Osama Mohammed Afzal, Mohamed bin Zayed University of Artificial Intelligence
-- Thomas Arnold, Technical University Darmstadt
-- Iryna Gurevych, Mohamed bin Zayed University of Artificial Intelligence
-- Nizar Habash, Mohamed bin Zayed University of Artificial Intelligence
-- Preslav Nakov, Mohamed bin Zayed University of Artificial Intelligence
-
-## Contacts
-
-Google group: [https://groups.google.com/g/semeval2024-task8/](https://groups.google.com/g/semeval2024-task8/)  
-Email: semeval2024-task8@googlegroups.com
