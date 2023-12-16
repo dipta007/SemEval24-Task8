@@ -174,4 +174,4 @@ venv/
 wandb/
 runs/
 roberta-base/
-out.jsonl
+out/

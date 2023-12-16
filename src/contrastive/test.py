@@ -53,6 +53,10 @@ predicitons = torch.tensor(predicitons).squeeze(-1)
 print(ids.shape)
 print(predicitons.shape)
 
-with jsonlines.open(f"./out.jsonl", "w") as writer:
+with jsonlines.open(f"./out/subtask_a_monolingual.jsonl", "w") as writer:
     for id, pred in zip(ids, predicitons):
         writer.write({"id": id.item(), "label": pred.item()})
+
+
+cmd = f"PYTHONPATH=../../ python ../../subtaskA/scorer/scorer.py --pred_file_path=./out/subtask_a_monolingual.jsonl --gold_file_path=../../data/SubtaskA/subtaskA_dev_monolingual.jsonl"
+os.system(cmd)
