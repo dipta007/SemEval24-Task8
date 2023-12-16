@@ -18,7 +18,5 @@ if [[ $v -gt 200 ]]; then
     exit 1
 else
     echo "Success: No uncommited changes"
-    # echo "CMD:" $@ ++debug=False
-    # $@ ++debug=False
-    ./train.sh $@
+    $@
 fi
