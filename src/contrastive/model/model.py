@@ -91,7 +91,7 @@ class ContrastiveModel(pl.LightningModule):
         return loss, log_dict
 
     def training_step(self, batch, batch_idx):
-        text, gen_text, label = batch
+        text, gen_text, label, _ = batch
         loss, log_dict = self(text, gen_text, label)
 
         for key, value in log_dict.items():
@@ -99,12 +99,23 @@ class ContrastiveModel(pl.LightningModule):
         return loss
 
     def validation_step(self, batch, batch_idx):
-        text, gen_text, label = batch
+        text, gen_text, label, _ = batch
         loss, log_dict = self(text, gen_text, label)
 
         for key, value in log_dict.items():
             self.log(f"valid/{key}", value, prog_bar=True)
         return loss
+    
+    def predict_step(self, batch, batch_idx):
+        text, _, _, ids = batch
+
+        text_embedding = self.encoder(text)
+        cls = self.classifier(text_embedding)
+        cls = cls.view(-1)
+        cls = cls.detach().cpu().numpy()
+        cls[cls >= THRSHOLD] = 1
+        cls[cls < THRSHOLD] = 0
+        return ids, cls
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.config.lr)

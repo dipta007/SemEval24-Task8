@@ -19,6 +19,7 @@ class ContrastiveDataModule(pl.LightningDataModule):
         with jsonlines.open(f'./data/SubtaskA/subtaskA_{split}_monolingual_gen.jsonl') as reader:
             for obj in reader:
                 obj['label'] = -1 if obj['label'] == 'HUMAN' else 1
+                obj['gen_text'] = obj['gen_text'] if "gen_text" in obj else ""
                 data.append(obj)
             data.append(obj)
         return data
@@ -33,7 +34,7 @@ class ContrastiveDataModule(pl.LightningDataModule):
             self.train_dataset = self.get_dataset("train")
             self.val_dataset = self.get_dataset("val")
         elif stage == "test":
-            self.test_dataset = self.get_dataset("test")
+            self.test_dataset = self.get_dataset("dev")
         else:
             raise ValueError(f"Invalid stage: {stage}")
 
@@ -50,12 +51,14 @@ class ContrastiveDataModule(pl.LightningDataModule):
         text = [obj['text'] for obj in batch]
         gen_text = [obj['gen_text'] for obj in batch]
         label = [obj['label'] for obj in batch]
+        ids = [obj['id'] for obj in batch]
 
         text = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True)
         gen_text = self.tokenizer(gen_text, return_tensors='pt', padding=True, truncation=True)
         label = torch.tensor(label, dtype=torch.float32)
+        ids = torch.tensor(ids, dtype=torch.int32)
 
-        return text, gen_text, label
+        return text, gen_text, label, ids
 
 
 if __name__ == "__main__":
@@ -65,8 +68,9 @@ if __name__ == "__main__":
     datamodule.prepare_data()
     datamodule.setup(stage="fit")
     for batch in datamodule.train_dataloader():
-        text, gen_text, label = batch
+        text, gen_text, label, ids = batch
         print(text['input_ids'].shape)
         print(gen_text['input_ids'].shape)
         print(label.shape)
+        print(ids.shape)
         break
