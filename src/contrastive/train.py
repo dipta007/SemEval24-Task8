@@ -1,0 +1,85 @@
+import lightning.pytorch as pl
+import lightning as L
+import torch
+from lightning.pytorch.callbacks import (
+    EarlyStopping,
+    RichModelSummary,
+    RichProgressBar,
+    ModelCheckpoint,
+)
+from dataloader import ContrastiveDataModule
+from model.model import ContrastiveModel
+from lightning.pytorch.loggers import WandbLogger
+import base_config as config
+import wandb
+
+wandb.login()
+
+config = config.get_config()
+print(config)
+
+device = "gpu" if torch.cuda.is_available() else "cpu"
+print("\ndevice :", device)
+config.device = "cuda" if device == "gpu" else "cpu"
+
+
+def main():
+    monitoring_metric = "valid/loss"
+    monitoring_mode = "min"
+
+    L.seed_everything(config.seed)
+    callbacks = [
+        ModelCheckpoint(
+            dirpath=f"/nfs/ada/ferraro/users/sroydip1/semeval24/task8/checkpoints/{config.exp_name}",
+            filename="best_model_{}={{{}:.2f}}".format(
+                monitoring_metric.replace("/", "_"), monitoring_metric
+            ),
+            auto_insert_metric_name=False,
+            monitor=f"{monitoring_metric}",
+            mode=monitoring_mode,
+            verbose=True,
+            save_top_k=1,
+            save_on_train_epoch_end=False,
+            enable_version_counter=False,
+        ),
+        EarlyStopping(
+            monitor=f"{monitoring_metric}",
+            mode=monitoring_mode,
+            verbose=True,
+            patience=10,
+        ),
+        RichModelSummary(max_depth=1),
+        RichProgressBar(leave=True),
+    ]
+    loggers = [
+        WandbLogger(
+            entity="gcnssdvae", project="sem8", log_model=False, name=config.exp_name
+        )
+    ]
+    if config.debug:
+        loggers = False
+
+    print("Loading data")
+    datamodule = ContrastiveDataModule(config)
+
+    print("Loading model")
+    model = ContrastiveModel(config, datamodule.tokenizer)
+    print('Training')
+    trainer = pl.Trainer(
+        accelerator=device,
+        logger=loggers,
+        callbacks=callbacks,
+        fast_dev_run=False,
+        val_check_interval=config.validate_every,
+        max_epochs=config.max_epochs,
+        accumulate_grad_batches=config.accumulate_grad_batches // config.batch_size,
+        log_every_n_steps=1,
+        overfit_batches=2 if config.debug else 0.0,
+    )
+
+    print("Fitting")
+    trainer.fit(model=model, datamodule=datamodule)
+
+
+if __name__ == "__main__":
+    main()
