@@ -1,0 +1,25 @@
+entity: gcnssdvae
+project: sem8
+
+program: train.py
+method: bayes
+metric:
+  name: val/text_acc
+  goal: maximize
+parameters:
+  batch_size:
+    values: [2, 4, 8, 16, 32]
+  max_doc_len:
+    values: [16, 32, 64, 128]
+  max_sen_len:
+    values: [16, 32, 64, 128]
+  model_name:
+    values: [roberta-base, roberta-large]
+  loss_weight_gen_text:
+    values: [0.0, 0.5, 1.0]
+command:
+  - ${env}
+  - ${interpreter}
+  - ${program}
+  - ${args}
+  - --encoder_type=doc

@@ -29,9 +29,10 @@ config.device = "cuda" if device == "gpu" else "cpu"
 def main():
     monitoring_metric = "valid/text_acc"
     monitoring_mode = "max"
-    checkpoint_dir = f"/nfs/ada/ferraro/users/sroydip1/semeval24/task8/checkpoints/{config.exp_name}"
+    checkpoint_dir = (
+        f"/nfs/ada/ferraro/users/sroydip1/semeval24/task8/checkpoints/{config.exp_name}"
+    )
     shutil.rmtree(checkpoint_dir, ignore_errors=True)
-    
 
     L.seed_everything(config.seed)
     callbacks = [
@@ -59,11 +60,17 @@ def main():
     ]
     loggers = [
         WandbLogger(
-            entity="gcnssdvae", project="sem8", log_model=False, name=config.exp_name
+            entity="gcnssdvae",
+            project="sem8",
+            log_model=False,
+            name=config.exp_name if config.exp_name else None,
         )
     ]
     if config.debug:
         loggers = False
+
+    if loggers:
+        loggers[0].experiment.define_metric("valid/text_acc", summary="max")
 
     print("Loading data")
     if config.encoder_type == "sen":
@@ -73,10 +80,9 @@ def main():
     else:
         raise ValueError("Encoder type not found")
 
-
     print("Loading model")
     model = ContrastiveModel(config, datamodule.tokenizer)
-    print('Training')
+    print("Training")
     trainer = pl.Trainer(
         accelerator=device,
         logger=loggers,
