@@ -4,6 +4,7 @@ import lightning.pytorch as pl
 from transformers import AutoModel
 from .encoder import Encoder
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+import numpy as np
 
 THRSHOLD = 0.5
 
@@ -16,38 +17,14 @@ class ContrastiveModel(pl.LightningModule):
 
         self.tokenizer = tokenizer
         sen_encoder = AutoModel.from_pretrained(self.config.model_name)
-        # self.classifier = nn.Linear(self.encoder.config.hidden_size, 1)
         self.encoder = Encoder(config, sen_encoder)
         self.classifier = nn.Sequential(
+            nn.Linear(sen_encoder.config.hidden_size, sen_encoder.config.hidden_size), nn.Tanh(),
             nn.Linear(sen_encoder.config.hidden_size, 1), nn.Sigmoid()
         )
 
         self.contrastive_loss = nn.CosineEmbeddingLoss()
         self.bce_loss = nn.BCELoss()
-
-    def get_metrics(self, preds, labels):
-        preds_flat = preds.view(-1).detach().cpu().numpy()
-        preds_flat[preds_flat >= THRSHOLD] = 1
-        labels_flat = labels.view(-1).detach().cpu().numpy()
-
-        preds_flat = preds_flat.astype(int)
-        labels_flat = labels_flat.astype(int)
-
-        acc = accuracy_score(labels_flat, preds_flat)
-        precision = precision_score(labels_flat, preds_flat)
-        recall = recall_score(labels_flat, preds_flat)
-        f1 = f1_score(labels_flat, preds_flat)
-        micro_f1 = f1_score(labels_flat, preds_flat, average="micro")
-        macro_f1 = f1_score(labels_flat, preds_flat, average="macro")
-
-        return {
-            "acc": acc,
-            "precision": precision,
-            "recall": recall,
-            "f1": f1,
-            "micro_f1": micro_f1,
-            "macro_f1": macro_f1,
-        }
 
     def forward(self, text, gen_text, label):
         text_embedding = self.encoder(text)
@@ -62,9 +39,7 @@ class ContrastiveModel(pl.LightningModule):
         text_bce_loss = self.bce_loss(text_pred.view(-1), text_label.view(-1))
 
         gen_text_label = torch.ones_like(label, dtype=torch.float32)
-        gen_text_bce_loss = self.bce_loss(
-            gen_text_pred.view(-1), gen_text_label.view(-1)
-        )
+        gen_text_bce_loss = self.bce_loss(gen_text_pred.view(-1), gen_text_label.view(-1))
 
         loss = (
             self.config.loss_weight_con * con_loss
@@ -117,6 +92,30 @@ class ContrastiveModel(pl.LightningModule):
         cls[cls < THRSHOLD] = 0
         return ids, cls
 
+    def get_metrics(self, preds, labels):
+        preds_flat = preds.view(-1).detach().cpu().numpy()
+        preds_flat[preds_flat >= THRSHOLD] = 1
+        labels_flat = labels.view(-1).detach().cpu().numpy()
+
+        preds_flat = preds_flat.astype(int)
+        labels_flat = labels_flat.astype(int)
+
+        acc = accuracy_score(labels_flat, preds_flat)
+        precision = precision_score(labels_flat, preds_flat, zero_division=0)
+        recall = recall_score(labels_flat, preds_flat, zero_division=0)
+        f1 = f1_score(labels_flat, preds_flat, zero_division=0)
+        micro_f1 = f1_score(labels_flat, preds_flat, average="micro", zero_division=0)
+        macro_f1 = f1_score(labels_flat, preds_flat, average="macro", zero_division=0)
+
+        return {
+            "acc": acc,
+            "precision": precision,
+            "recall": recall,
+            "f1": f1,
+            "micro_f1": micro_f1,
+            "macro_f1": macro_f1,
+        }
+    
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.config.lr)
+        optimizer = torch.optim.AdamW(self.parameters(), lr=self.config.lr, weight_decay=self.config.weight_decay)
         return optimizer

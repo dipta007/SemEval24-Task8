@@ -18,7 +18,7 @@ class ContrastiveDataModule(pl.LightningDataModule):
         data = []
         with jsonlines.open(f'./data/SubtaskA/subtaskA_{split}_monolingual_gen.jsonl') as reader:
             for obj in reader:
-                obj['label'] = -1 if obj['label'] == 'HUMAN' else 1
+                obj['label'] = -1 if obj['label'] == HUMAN else 1
                 obj['gen_text'] = obj['gen_text'] if "gen_text" in obj else ""
                 data.append(obj)
             data.append(obj)
@@ -39,13 +39,13 @@ class ContrastiveDataModule(pl.LightningDataModule):
             raise ValueError(f"Invalid stage: {stage}")
 
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.config.batch_size, shuffle=True, collate_fn=self.collate_fn)
+        return DataLoader(self.train_dataset, batch_size=self.config.batch_size, shuffle=True, collate_fn=self.collate_fn, num_workers=1)
     
     def val_dataloader(self):
-        return DataLoader(self.val_dataset, batch_size=self.config.batch_size, shuffle=False, collate_fn=self.collate_fn)
+        return DataLoader(self.val_dataset, batch_size=self.config.batch_size, shuffle=False, collate_fn=self.collate_fn, num_workers=1)
     
     def test_dataloader(self):
-        return DataLoader(self.test_dataset, batch_size=self.config.batch_size, shuffle=False, collate_fn=self.collate_fn)
+        return DataLoader(self.test_dataset, batch_size=self.config.batch_size, shuffle=False, collate_fn=self.collate_fn, num_workers=1)
     
     def collate_fn(self, batch):
         text = [obj['text'] for obj in batch]

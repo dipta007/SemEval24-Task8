@@ -7,10 +7,12 @@ from lightning.pytorch.callbacks import (
     RichProgressBar,
     ModelCheckpoint,
 )
-from dataloader import ContrastiveDataModule
+from dataloader.sen_sim import ContrastiveDataModule
 from model.model import ContrastiveModel
 from lightning.pytorch.loggers import WandbLogger
 import base_config as config
+import shutil
+import os
 import wandb
 
 wandb.login()
@@ -24,13 +26,16 @@ config.device = "cuda" if device == "gpu" else "cpu"
 
 
 def main():
-    monitoring_metric = "valid/loss"
-    monitoring_mode = "min"
+    monitoring_metric = "valid/acc"
+    monitoring_mode = "max"
+    checkpoint_dir = f"/nfs/ada/ferraro/users/sroydip1/semeval24/task8/checkpoints/{config.exp_name}"
+    shutil.rmtree(checkpoint_dir, ignore_errors=True)
+    
 
     L.seed_everything(config.seed)
     callbacks = [
         ModelCheckpoint(
-            dirpath=f"/nfs/ada/ferraro/users/sroydip1/semeval24/task8/checkpoints/{config.exp_name}",
+            dirpath=checkpoint_dir,
             filename="best_model_{}={{{}:.2f}}".format(
                 monitoring_metric.replace("/", "_"), monitoring_metric
             ),
@@ -74,11 +79,14 @@ def main():
         max_epochs=config.max_epochs,
         accumulate_grad_batches=config.accumulate_grad_batches // config.batch_size,
         log_every_n_steps=1,
-        overfit_batches=2 if config.debug else 0.0,
+        overfit_batches=config.overfit if config.overfit != 0 else 0.0,
     )
 
     print("Fitting")
     trainer.fit(model=model, datamodule=datamodule)
+
+    print("Testing")
+    os.system(f"python test.py {config.exp_name}")
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@ import torch
 from model.model import ContrastiveModel
 import os
 import lightning.pytorch as pl
-from dataloader import ContrastiveDataModule
+from dataloader.sen_sim import ContrastiveDataModule
 
 
 ROOT_DIR = "/nfs/ada/ferraro/users/sroydip1/semeval24/task8/checkpoints"
@@ -53,10 +53,10 @@ predicitons = torch.tensor(predicitons).squeeze(-1)
 print(ids.shape)
 print(predicitons.shape)
 
-with jsonlines.open(f"./out/subtask_a_monolingual.jsonl", "w") as writer:
+with jsonlines.open(f"./out/subtask_a_monolingual_{exp_name}.jsonl", "w") as writer:
     for id, pred in zip(ids, predicitons):
         writer.write({"id": id.item(), "label": pred.item()})
 
 
-cmd = f"PYTHONPATH=../../ python ../../subtaskA/scorer/scorer.py --pred_file_path=./out/subtask_a_monolingual.jsonl --gold_file_path=../../data/SubtaskA/subtaskA_dev_monolingual.jsonl"
+cmd = f"PYTHONPATH=../../ python ../../subtaskA/scorer/scorer.py --pred_file_path=./out/subtask_a_monolingual_{exp_name}.jsonl --gold_file_path=../../data/SubtaskA/subtaskA_dev_monolingual.jsonl"
 os.system(cmd)

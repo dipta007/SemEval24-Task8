@@ -19,15 +19,17 @@ def add_model_args(parent_parser):
     parser.add_argument("--model_name", type=str, default='sentence-transformers/all-mpnet-base-v2', help="Model name?")
     parser.add_argument("--loss_weight_con", type=float, default=1.0, help="Contrastive loss weight?")
     parser.add_argument("--loss_weight_text", type=float, default=1.0, help="Text loss weight?")
-    parser.add_argument("--loss_weight_gen_text", type=float, default=1.0, help="Gen text loss weight?")
+    parser.add_argument("--loss_weight_gen_text", type=float, default=0.0, help="Gen text loss weight?")
+    parser.add_argument("--weight_decay", type=float, default=0.01, help="Weight decay?")
     return parent_parser
 
 def add_trainer_args(parent_parser):
     parser = parent_parser.add_argument_group("Trainer Config")
     parser.add_argument("--max_epochs", type=int, default=-1, help="Number of maximum epochs", )
-    parser.add_argument("--validate_every", type=int, default=0.125, help="Number of maximum epochs")
-    parser.add_argument("--lr", type=float, default=0.0003, help="Learning rate")
-    parser.add_argument("--accumulate_grad_batches", type=int, default=128, help="Number of accumulation of grad batches")
+    parser.add_argument("--validate_every", type=int, default=0.04, help="Number of maximum epochs")
+    parser.add_argument("--lr", type=float, default=2e-5, help="Learning rate")
+    parser.add_argument("--accumulate_grad_batches", type=int, default=32, help="Number of accumulation of grad batches")
+    parser.add_argument("--overfit", type=int, default=0, help="Overfit batches")
     return parent_parser
 
 def get_config():
