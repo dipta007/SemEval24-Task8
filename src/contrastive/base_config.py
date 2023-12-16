@@ -17,6 +17,9 @@ def add_model_args(parent_parser):
     parser = parent_parser.add_argument_group("Model Config")
     parser.add_argument("--exp_name", type=str, default="sem8", help="Experiement name?", required=True)
     parser.add_argument("--model_name", type=str, default='sentence-transformers/all-mpnet-base-v2', help="Model name?")
+    parser.add_argument("--loss_weight_con", type=float, default=1.0, help="Contrastive loss weight?")
+    parser.add_argument("--loss_weight_text", type=float, default=1.0, help="Text loss weight?")
+    parser.add_argument("--loss_weight_gen_text", type=float, default=1.0, help="Gen text loss weight?")
     return parent_parser
 
 def add_trainer_args(parent_parser):

@@ -7,6 +7,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 
 THRSHOLD = 0.5
 
+
 class ContrastiveModel(pl.LightningModule):
     def __init__(self, config, tokenizer):
         super().__init__()
@@ -18,8 +19,7 @@ class ContrastiveModel(pl.LightningModule):
         # self.classifier = nn.Linear(self.encoder.config.hidden_size, 1)
         self.encoder = Encoder(config, sen_encoder)
         self.classifier = nn.Sequential(
-            nn.Linear(sen_encoder.config.hidden_size, 1),
-            nn.Sigmoid()
+            nn.Linear(sen_encoder.config.hidden_size, 1), nn.Sigmoid()
         )
 
         self.contrastive_loss = nn.CosineEmbeddingLoss()
@@ -37,8 +37,8 @@ class ContrastiveModel(pl.LightningModule):
         precision = precision_score(labels_flat, preds_flat)
         recall = recall_score(labels_flat, preds_flat)
         f1 = f1_score(labels_flat, preds_flat)
-        micro_f1 = f1_score(labels_flat, preds_flat, average='micro')
-        macro_f1 = f1_score(labels_flat, preds_flat, average='macro')
+        micro_f1 = f1_score(labels_flat, preds_flat, average="micro")
+        macro_f1 = f1_score(labels_flat, preds_flat, average="macro")
 
         return {
             "acc": acc,
@@ -62,9 +62,15 @@ class ContrastiveModel(pl.LightningModule):
         text_bce_loss = self.bce_loss(text_pred.view(-1), text_label.view(-1))
 
         gen_text_label = torch.ones_like(label, dtype=torch.float32)
-        gen_text_bce_loss = self.bce_loss(gen_text_pred.view(-1), gen_text_label.view(-1))
+        gen_text_bce_loss = self.bce_loss(
+            gen_text_pred.view(-1), gen_text_label.view(-1)
+        )
 
-        loss = con_loss + text_bce_loss + gen_text_bce_loss
+        loss = (
+            self.config.loss_weight_con * con_loss
+            + self.config.loss_weight_text * text_bce_loss
+            + self.config.loss_weight_gen_text * gen_text_bce_loss
+        )
 
         log_dict = {
             "loss": loss,
@@ -78,7 +84,7 @@ class ContrastiveModel(pl.LightningModule):
 
         for key, value in text_metrics.items():
             log_dict[f"text_{key}"] = value
-        
+
         for key, value in gen_text_metrics.items():
             log_dict[f"gen_text_{key}"] = value
 
@@ -91,7 +97,7 @@ class ContrastiveModel(pl.LightningModule):
         for key, value in log_dict.items():
             self.log(f"train/{key}", value, prog_bar=True)
         return loss
-    
+
     def validation_step(self, batch, batch_idx):
         text, gen_text, label = batch
         loss, log_dict = self(text, gen_text, label)
@@ -99,7 +105,6 @@ class ContrastiveModel(pl.LightningModule):
         for key, value in log_dict.items():
             self.log(f"valid/{key}", value, prog_bar=True)
         return loss
-
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.config.lr)
