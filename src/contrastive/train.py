@@ -26,7 +26,7 @@ config.device = "cuda" if device == "gpu" else "cpu"
 
 
 def main():
-    monitoring_metric = "valid/acc"
+    monitoring_metric = "valid/text_acc"
     monitoring_mode = "max"
     checkpoint_dir = f"/nfs/ada/ferraro/users/sroydip1/semeval24/task8/checkpoints/{config.exp_name}"
     shutil.rmtree(checkpoint_dir, ignore_errors=True)
