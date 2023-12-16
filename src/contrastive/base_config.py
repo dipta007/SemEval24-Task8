@@ -11,6 +11,8 @@ def add_data_args(parent_parser):
     parser = parent_parser.add_argument_group("Data Config")
     parser.add_argument("--data_dir", type=str, default="./data/", help="Data directory")
     parser.add_argument("--batch_size", type=int, default=2, help="Batch size?")
+    parser.add_argument("--max_doc_len", type=int, default=64, help="Max doc length?")
+    parser.add_argument("--max_sen_len", type=int, default=128, help="Max sen length?")
     return parent_parser
 
 def add_model_args(parent_parser):
@@ -21,6 +23,7 @@ def add_model_args(parent_parser):
     parser.add_argument("--loss_weight_text", type=float, default=1.0, help="Text loss weight?")
     parser.add_argument("--loss_weight_gen_text", type=float, default=0.0, help="Gen text loss weight?")
     parser.add_argument("--weight_decay", type=float, default=0.01, help="Weight decay?")
+    parser.add_argument("--encoder_type", type=str, default="sen", help="Encoder type? [sen, doc]")
     return parent_parser
 
 def add_trainer_args(parent_parser):

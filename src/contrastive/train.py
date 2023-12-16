@@ -7,6 +7,7 @@ from lightning.pytorch.callbacks import (
     RichProgressBar,
     ModelCheckpoint,
 )
+from dataloader.doc_sim import ContrastiveDocDataModule
 from dataloader.sen_sim import ContrastiveDataModule
 from model.model import ContrastiveModel
 from lightning.pytorch.loggers import WandbLogger
@@ -65,7 +66,13 @@ def main():
         loggers = False
 
     print("Loading data")
-    datamodule = ContrastiveDataModule(config)
+    if config.encoder_type == "sen":
+        datamodule = ContrastiveDataModule(config)
+    elif config.encoder_type == "doc":
+        datamodule = ContrastiveDocDataModule(config)
+    else:
+        raise ValueError("Encoder type not found")
+
 
     print("Loading model")
     model = ContrastiveModel(config, datamodule.tokenizer)
