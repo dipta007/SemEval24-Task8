@@ -109,11 +109,11 @@ class ContrastiveModel(pl.LightningModule):
         labels_flat = labels_flat.astype(int)
 
         acc = accuracy_score(labels_flat, preds_flat)
-        precision = precision_score(labels_flat, preds_flat, zero_division=0)
-        recall = recall_score(labels_flat, preds_flat, zero_division=0)
-        f1 = f1_score(labels_flat, preds_flat, zero_division=0)
-        micro_f1 = f1_score(labels_flat, preds_flat, average="micro", zero_division=0)
-        macro_f1 = f1_score(labels_flat, preds_flat, average="macro", zero_division=0)
+        precision = precision_score(labels_flat, preds_flat, zero_division=1)
+        recall = recall_score(labels_flat, preds_flat, zero_division=1)
+        f1 = f1_score(labels_flat, preds_flat, zero_division=1)
+        micro_f1 = f1_score(labels_flat, preds_flat, average="micro", zero_division=1)
+        macro_f1 = f1_score(labels_flat, preds_flat, average="macro", zero_division=1)
 
         return {
             "acc": acc,

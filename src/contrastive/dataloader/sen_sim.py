@@ -16,7 +16,7 @@ class ContrastiveDataModule(pl.LightningDataModule):
         
     def get_dataset(self, split):
         data = []
-        with jsonlines.open(f'./data/SubtaskA/subtaskA_{split}_monolingual_gen.jsonl') as reader:
+        with jsonlines.open(f'./data/SubtaskA/monolingual/ibm/{split}.jsonl') as reader:
             for obj in reader:
                 obj['label'] = -1 if obj['label'] == HUMAN else 1
                 obj['gen_text'] = obj['gen_text'] if "gen_text" in obj else ""
@@ -34,7 +34,7 @@ class ContrastiveDataModule(pl.LightningDataModule):
             self.train_dataset = self.get_dataset("train")
             self.val_dataset = self.get_dataset("val")
         elif stage == "test":
-            self.test_dataset = self.get_dataset("dev")
+            self.test_dataset = self.get_dataset("test")
         else:
             raise ValueError(f"Invalid stage: {stage}")
 

@@ -98,8 +98,6 @@ def main():
     print("Fitting")
     trainer.fit(model=model, datamodule=datamodule)
 
-    print("Testing")
-    os.system(f"python test.py {config.exp_name}")
 
 
 if __name__ == "__main__":
