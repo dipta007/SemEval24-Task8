@@ -12,11 +12,19 @@ parameters:
   max_doc_len:
     values: [16, 32, 64, 128]
   max_sen_len:
-    values: [16, 32, 64, 128]
-  model_name:
-    values: [roberta-base, roberta-large]
+    values: [32, 64, 128, 256]
+  loss_weight_con:
+    distribution: uniform
+    min: 0.0
+    max: 1.0
+  loss_weight_text:
+    distribution: uniform
+    min: 0.0
+    max: 1.0
   loss_weight_gen_text:
-    values: [0.0, 0.5, 1.0]
+    distribution: uniform
+    min: 0.0
+    max: 1.0
 command:
   - ${env}
   - ${interpreter}
@@ -24,3 +32,4 @@ command:
   - ${args}
   - --encoder_type=doc
   - --exp_name=sweep
+  - --model_name=roberta-base
