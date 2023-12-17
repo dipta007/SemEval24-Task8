@@ -63,7 +63,7 @@ def main():
             entity="gcnssdvae",
             project="sem8",
             log_model=False,
-            name=config.exp_name if config.exp_name else None,
+            name=config.exp_name if config.exp_name != 'sweep' else None,
         )
     ]
     if config.debug:
