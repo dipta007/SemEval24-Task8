@@ -79,7 +79,7 @@ class ContrastiveModel(pl.LightningModule):
         loss, log_dict = self(text, gen_text, label)
 
         for key, value in log_dict.items():
-            self.log(f"train/{key}", value, prog_bar=True)
+            self.log(f"train/{key}", value, prog_bar=True, batch_size=self.config.batch_size)
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -87,7 +87,7 @@ class ContrastiveModel(pl.LightningModule):
         loss, log_dict = self(text, gen_text, label)
 
         for key, value in log_dict.items():
-            self.log(f"valid/{key}", value, prog_bar=True)
+            self.log(f"valid/{key}", value, prog_bar=True, batch_size=self.config.batch_size)
         return loss
     
     def predict_step(self, batch, batch_idx):
