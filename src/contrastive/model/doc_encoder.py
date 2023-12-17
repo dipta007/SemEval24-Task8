@@ -11,9 +11,10 @@ class DocEncoder(pl.LightningModule):
         self.doc_encoder = doc_encoder
 
     def forward(self, text):
+        batch_size = text['doc_attention_mask'].size(0)
         enc_out = self.sen_encoder(input_ids=text['input_ids'], attention_mask=text['attention_mask'])
         enc_out = enc_out.last_hidden_state[:, 0, :]
-        doc_sen_emb = enc_out.view(self.config.batch_size, -1, self.sen_encoder.config.hidden_size)
+        doc_sen_emb = enc_out.view(batch_size, -1, self.sen_encoder.config.hidden_size)
 
         doc_emb = self.doc_encoder(inputs_embeds=doc_sen_emb, attention_mask=text['doc_attention_mask'])
         doc_emb = doc_emb.last_hidden_state[:, 0, :]
