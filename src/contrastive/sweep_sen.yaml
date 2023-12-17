@@ -1,0 +1,33 @@
+entity: gcnssdvae
+project: sem8
+
+program: train.py
+method: bayes
+metric:
+  name: val/text_acc
+  goal: maximize
+parameters:
+  batch_size:
+    values: [16, 32, 64]
+  max_sen_len:
+    values: [32, 64, 128, 256]
+  loss_weight_con:
+    distribution: uniform
+    min: 0.0
+    max: 1.0
+  loss_weight_text:
+    distribution: uniform
+    min: 0.0
+    max: 1.0
+  loss_weight_gen_text:
+    distribution: uniform
+    min: 0.0
+    max: 1.0
+command:
+  - ${env}
+  - ${interpreter}
+  - ${program}
+  - ${args}
+  - --encoder_type=sen
+  - --exp_name=sweep
+  - --model_name=sentence-transformers/all-mpnet-base-v2

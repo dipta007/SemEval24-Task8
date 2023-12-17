@@ -90,7 +90,7 @@ def main():
         fast_dev_run=False,
         val_check_interval=config.validate_every,
         max_epochs=config.max_epochs,
-        accumulate_grad_batches=config.accumulate_grad_batches // config.batch_size,
+        accumulate_grad_batches=config.accumulate_grad_batches // config.batch_size if config.batch_size < config.accumulate_grad_batches else 1,
         log_every_n_steps=1,
         overfit_batches=config.overfit if config.overfit != 0 else 0.0,
     )
