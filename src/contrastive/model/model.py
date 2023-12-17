@@ -102,6 +102,7 @@ class ContrastiveModel(pl.LightningModule):
     def get_metrics(self, preds, labels):
         preds_flat = preds.view(-1).detach().cpu().numpy()
         preds_flat[preds_flat >= THRSHOLD] = 1
+        preds_flat[preds_flat < THRSHOLD] = 0
         labels_flat = labels.view(-1).detach().cpu().numpy()
 
         preds_flat = preds_flat.astype(int)
