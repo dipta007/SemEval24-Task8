@@ -26,7 +26,9 @@ class ContrastiveModel(pl.LightningModule):
         else:
             raise ValueError("Encoder type not found")
         self.classifier = nn.Sequential(
+            nn.Dropout(self.config.cls_dropout),
             nn.Linear(sen_encoder.config.hidden_size, sen_encoder.config.hidden_size), nn.Tanh(),
+            nn.Dropout(self.config.cls_dropout),
             nn.Linear(sen_encoder.config.hidden_size, 1), nn.Sigmoid()
         )
 

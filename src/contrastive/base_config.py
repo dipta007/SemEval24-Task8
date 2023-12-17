@@ -24,6 +24,7 @@ def add_model_args(parent_parser):
     parser.add_argument("--loss_weight_gen_text", type=float, default=0.0, help="Gen text loss weight?")
     parser.add_argument("--weight_decay", type=float, default=0.01, help="Weight decay?")
     parser.add_argument("--encoder_type", type=str, default="sen", help="Encoder type? [sen, doc]")
+    parser.add_argument("--cls_dropout", type=float, default=0.1, help="CLS dropout?")
     return parent_parser
 
 def add_trainer_args(parent_parser):
