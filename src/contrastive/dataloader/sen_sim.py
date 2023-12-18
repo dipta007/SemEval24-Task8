@@ -55,6 +55,13 @@ class ContrastiveDataModule(pl.LightningDataModule):
 
         text = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True)
         gen_text = self.tokenizer(gen_text, return_tensors='pt', padding=True, truncation=True)
+
+        text['global_attention_mask'] = torch.zeros_like(text['input_ids'])
+        text['global_attention_mask'][:, 0] = 1
+        
+        gen_text['global_attention_mask'] = torch.zeros_like(gen_text['input_ids'])
+        gen_text['global_attention_mask'][:, 0] = 1
+
         label = torch.tensor(label, dtype=torch.float32)
         ids = torch.tensor(ids, dtype=torch.int32)
 
