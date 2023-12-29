@@ -132,7 +132,9 @@ The average results for the monolingual setup across three runs for RoBERTa is 0
 The average results for the multilingual setup across three runs for XLM-R is 0.72;
 
 ```
+python3 subtaskA/baseline/transformer_baseline.py --train_file_path ./data/SubtaskA/subtaskA_train_monolingual.jsonl --test_file_path ./data/SubtaskA/subtaskA_dev_monolingual.jsonl --prediction_file_path ./longout.txt --subtask A --model allenai/longformer-base-4096
 
+python3 subtaskA/baseline/transformer_baseline.py --train_file_path ./data/SubtaskA/subtaskA_train_monolingual.jsonl --test_file_path ./data/SubtaskA/subtaskA_dev_monolingual.jsonl --prediction_file_path ./longout.txt --subtask A --model jpwahle/longformer-base-plagiarism-detection
 ```
 
 ### Task B
@@ -153,3 +155,7 @@ The average MAE score across three runs for longformer is: 3.53 ± 0.212
 
 To modify the hyperparameters, please edit the corresponding python command within the run.sh file.
 
+
+## Features
+
+Readability Features: https://www.kaggle.com/code/phanisrikanth/daigt-readability-features-for-classification

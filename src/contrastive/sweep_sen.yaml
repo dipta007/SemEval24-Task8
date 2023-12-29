@@ -7,10 +7,6 @@ metric:
   name: val/text_acc
   goal: maximize
 parameters:
-  batch_size:
-    values: [16, 32]
-  max_sen_len:
-    values: [32, 64, 128, 256, 512]
   loss_weight_con:
     values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
   loss_weight_text:
@@ -19,6 +15,14 @@ parameters:
     values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
   cls_dropout:
     values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+  weight_decay:
+    values: [0.0, 0.01, 0.001, 0.0001]
+  accumulate_grad_batches:
+    values: [2, 4, 8, 16, 32]
+  lr:
+    distribution: uniform
+    min: 0.00001
+    max: 0.0001
 command:
   - ${env}
   - ${interpreter}
@@ -26,4 +30,9 @@ command:
   - ${args}
   - --encoder_type=sen
   - --exp_name=sweep
-  - --model_name=sentence-transformers/all-mpnet-base-v2
+  - --model_name=jpwahle/longformer-base-plagiarism-detection
+  - --batch_size=2
+  - --max_sen_len=4096
+
+
+# python train.py --batch_size=2 --loss_weight_gen_text=0.5 --exp_name=longpara_gloss_0.5 --encoder_type=sen --max_sen_len=4096 --model_name=allenai/longformer-large-4096
