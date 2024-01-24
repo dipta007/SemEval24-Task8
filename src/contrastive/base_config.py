@@ -30,7 +30,7 @@ def add_model_args(parent_parser):
 def add_trainer_args(parent_parser):
     parser = parent_parser.add_argument_group("Trainer Config")
     parser.add_argument("--max_epochs", type=int, default=-1, help="Number of maximum epochs", )
-    parser.add_argument("--validate_every", type=int, default=0.04, help="Number of maximum epochs")
+    parser.add_argument("--validate_every", type=float, default=0.04, help="Number of maximum epochs")
     parser.add_argument("--lr", type=float, default=2e-5, help="Learning rate")
     parser.add_argument("--accumulate_grad_batches", type=int, default=32, help="Number of accumulation of grad batches")
     parser.add_argument("--overfit", type=int, default=0, help="Overfit batches")
