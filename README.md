@@ -159,3 +159,8 @@ To modify the hyperparameters, please edit the corresponding python command with
 ## Features
 
 Readability Features: https://www.kaggle.com/code/phanisrikanth/daigt-readability-features-for-classification
+
+
+
+<!-- INFO : Prediction file format is correct
+INFO : macro-F1=0.89080 micro-F1=0.89142        accuracy=0.89142 -->

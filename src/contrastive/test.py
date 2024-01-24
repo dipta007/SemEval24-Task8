@@ -35,7 +35,9 @@ model = ContrastiveModel.load_from_checkpoint(
 )
 
 config = model.config
-config.batch_size = 1
+config.batch_size = 16
+
+print(config)
 
 model.eval()
 
@@ -46,24 +48,29 @@ elif config.encoder_type == "sen":
 else:
     raise ValueError(f"Invalid encoder type: {config.encoder_type}")
 
-datamodule.setup("test")
+datamodule.setup("test_final")
 
 trainer = pl.Trainer()
 
 ids_predicitons = trainer.predict(model, datamodule.test_dataloader())
 
+
 ids, predicitons = zip(*ids_predicitons)
 
-ids = torch.tensor(ids)
-predicitons = torch.tensor(predicitons).squeeze(-1)
+ids = [id.clone().detach() for id in ids]
+predicitons = [torch.tensor(pred) for pred in predicitons]
+
+ids = torch.cat(ids)
+predicitons = torch.cat(predicitons)
+
 
 print(ids.shape)
 print(predicitons.shape)
 
-with jsonlines.open(f"./out/out_{exp_name}.jsonl", "w") as writer:
+with jsonlines.open(f"./final/final2_{exp_name}.jsonl", "w") as writer:
     for id, pred in zip(ids, predicitons):
         writer.write({"id": id.item(), "label": pred.item()})
 
 
-cmd = f"PYTHONPATH=../../ python ../../subtaskA/scorer/scorer.py --pred_file_path=./out/out_{exp_name}.jsonl --gold_file_path=./data/SubtaskA/monolingual/ibm/test.jsonl"
+cmd = f"PYTHONPATH=../../ python ../../subtaskA/scorer/scorer.py --pred_file_path=./final/final_{exp_name}.jsonl --gold_file_path=./data/SubtaskA/monolingual/ibm/test.jsonl"
 os.system(cmd)
