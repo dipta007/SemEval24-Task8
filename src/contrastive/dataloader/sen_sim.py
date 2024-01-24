@@ -1,12 +1,17 @@
 import lightning.pytorch as pl
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
+from enum import Enum
 import jsonlines
 import torch
 
 
-HUMAN = 0
-AI    = 1
+MODELS = Enum("MODELS", ['chatGPT', 'human', 'cohere', 'davinci', 'bloomz', 'dolly'], start=0)
+
+
+
+# class ContrastiveDataset(torch.utils.data.Dataset):
+#     def 
 
 class ContrastiveDataModule(pl.LightningDataModule):
     def __init__(self, config):
@@ -16,10 +21,15 @@ class ContrastiveDataModule(pl.LightningDataModule):
         
     def get_dataset(self, split):
         data = []
-        with jsonlines.open(f'./data/SubtaskA/monolingual/ibm/{split}.jsonl') as reader:
+        with jsonlines.open(f'./data/SubtaskB/subtaskB_{split}.jsonl') as reader:
             for obj in reader:
-                obj['label'] = -1 if obj['label'] == HUMAN else 1
-                obj['gen_text'] = obj['gen_text'] if "gen_text" in obj else ""
+                # obj['label'] = -1 if obj['label'] == HUMAN else 1
+                # obj['gen_text'] = obj['gen_text'] if "gen_text" in obj else ""
+                from pprint import pprint
+                pprint(obj)
+                model = obj['model']
+                print(MODELS[model], MODELS[model].value)
+                exit()
                 data.append(obj)
             data.append(obj)
         return data
@@ -34,7 +44,15 @@ class ContrastiveDataModule(pl.LightningDataModule):
             self.train_dataset = self.get_dataset("train")
             self.val_dataset = self.get_dataset("val")
         elif stage == "test":
-            self.test_dataset = self.get_dataset("test")
+            self.test_dataset = self.get_dataset("all_test")
+        elif stage == "test_final":
+            data = []
+            with jsonlines.open(f'./data/test_final/subtaskA_monolingual.jsonl') as reader:
+                for obj in reader:
+                    obj['gen_text'] = obj['gen_text'] if "gen_text" in obj else ""
+                    data.append(obj)
+                data.append(obj)
+            self.test_dataset = data
         else:
             raise ValueError(f"Invalid stage: {stage}")
 
@@ -50,7 +68,10 @@ class ContrastiveDataModule(pl.LightningDataModule):
     def collate_fn(self, batch):
         text = [obj['text'] for obj in batch]
         gen_text = [obj['gen_text'] for obj in batch]
-        label = [obj['label'] for obj in batch]
+        label = None
+        if "label" in batch[0]:
+            label = [obj['label'] for obj in batch]
+        # label = [obj['label'] for obj in batch]
         ids = [obj['id'] for obj in batch]
 
         text = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True)
@@ -62,7 +83,8 @@ class ContrastiveDataModule(pl.LightningDataModule):
         gen_text['global_attention_mask'] = torch.zeros_like(gen_text['input_ids'])
         gen_text['global_attention_mask'][:, 0] = 1
 
-        label = torch.tensor(label, dtype=torch.float32)
+        if "label" in batch[0]:
+            label = torch.tensor(label, dtype=torch.float32)
         ids = torch.tensor(ids, dtype=torch.int32)
 
         return text, gen_text, label, ids
