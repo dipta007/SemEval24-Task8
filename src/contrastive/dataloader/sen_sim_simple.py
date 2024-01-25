@@ -121,8 +121,8 @@ class ContrastiveDataModule(pl.LightningDataModule):
         pos_ids = [obj['pos_id'] for obj in batch]
         neg_ids = [obj['neg_id'] for obj in batch]
 
-        pos = self.tokenizer(pos, return_tensors='pt', padding=True, truncation=True)
-        neg = self.tokenizer(neg, return_tensors='pt', padding=True, truncation=True)
+        pos = self.tokenizer(pos, return_tensors='pt', padding=True, truncation=True, max_length=self.config.max_length)
+        neg = self.tokenizer(neg, return_tensors='pt', padding=True, truncation=True, max_length=self.config.max_length)
 
         pos['global_attention_mask'] = torch.zeros_like(pos['input_ids'])
         pos['global_attention_mask'][:, 0] = 1
