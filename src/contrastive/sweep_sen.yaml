@@ -35,7 +35,7 @@ command:
   - --exp_name=sweep
   - --model_name=jpwahle/longformer-base-plagiarism-detection
   - --batch_size=2
-  - --max_sen_len=4096
+  - --max_sen_len=2048
   - --accumulate_grad_batches=16
   - --weight_decay=0.0
   - --lr=1e-5
