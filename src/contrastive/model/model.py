@@ -120,15 +120,15 @@ class ContrastiveModel(pl.LightningModule):
         return loss
 
     def predict_step(self, batch, batch_idx):
-        text, _, _, ids = batch
+        pos, neg, pos_label, neg_label, pos_ids, neg_ids = batch
 
-        text_embedding = self.encoder(text)
+        text_embedding = self.encoder(pos)
         cls = self.classifier(text_embedding)
         cls = torch.softmax(cls, dim=-1)
         cls = torch.argmax(cls, dim=-1)
         cls = cls.view(-1)
         cls = cls.detach().cpu().numpy()
-        return ids, cls
+        return pos_ids, cls
 
     def get_metrics(self, preds, labels):
         preds = torch.softmax(preds, dim=-1)
