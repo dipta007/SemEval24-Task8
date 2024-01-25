@@ -8,12 +8,11 @@ from lightning.pytorch.callbacks import (
     ModelCheckpoint,
 )
 from dataloader.doc_sim import ContrastiveDocDataModule
-from dataloader.sen_sim import ContrastiveDataModule
+from dataloader.sen_sim_simple import ContrastiveDataModule
 from model.model import ContrastiveModel
 from lightning.pytorch.loggers import WandbLogger
 import base_config as config
 import shutil
-import os
 import wandb
 
 wandb.login()
@@ -27,12 +26,13 @@ config.device = "cuda" if device == "gpu" else "cpu"
 
 
 def main():
-    monitoring_metric = "valid/text_acc"
+    monitoring_metric = "valid/mean_acc"
     monitoring_mode = "max"
     checkpoint_dir = (
-        f"/nfs/ada/ferraro/users/sroydip1/semeval24/task8/checkpoints/{config.exp_name}"
+        f"/nfs/ada/ferraro/users/sroydip1/semeval24/task8/subtaskB/{config.exp_name}"
     )
-    shutil.rmtree(checkpoint_dir, ignore_errors=True)
+    if config.exp_name != 'sweep':
+        shutil.rmtree(checkpoint_dir, ignore_errors=True)
 
     L.seed_everything(config.seed)
     callbacks = [
@@ -45,7 +45,7 @@ def main():
             monitor=f"{monitoring_metric}",
             mode=monitoring_mode,
             verbose=True,
-            save_top_k=1,
+            save_top_k=(1 if config.exp_name != 'sweep' else 0),
             save_on_train_epoch_end=False,
             enable_version_counter=False,
         ),
@@ -61,7 +61,7 @@ def main():
     loggers = [
         WandbLogger(
             entity="gcnssdvae",
-            project="sem8",
+            project="sem8B",
             log_model=False,
             name=config.exp_name if config.exp_name != 'sweep' else None,
         )
@@ -70,7 +70,7 @@ def main():
         loggers = False
 
     if loggers:
-        loggers[0].experiment.define_metric("valid/text_acc", summary="max")
+        loggers[0].experiment.define_metric("valid/mean_acc", summary="max")
 
     print("Loading data")
     if config.encoder_type == "sen":

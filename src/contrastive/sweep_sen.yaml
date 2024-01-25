@@ -1,20 +1,31 @@
 entity: gcnssdvae
-project: sem8
+project: sem8B
 
 program: train.py
 method: bayes
 metric:
-  name: val/text_acc
+  name: valid/mean_acc
   goal: maximize
+
 parameters:
-  loss_weight_con:
+  lw_pos_con:
     values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-  loss_weight_text:
-    values: [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-  loss_weight_gen_text:
+  lw_pos_ce:
+    values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+  lw_neg_con:
+    values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+  lw_neg_ce:
     values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
   cls_dropout:
     values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+  cls_act:
+    values: [relu, tanh]
+
+early_terminate:
+  type: hyperband
+  min_iter: 4
+  eta: 2
+
 command:
   - ${env}
   - ${interpreter}
@@ -28,7 +39,3 @@ command:
   - --accumulate_grad_batches=16
   - --weight_decay=0.0
   - --lr=1e-5
-
-
-
-# python train.py --batch_size=2 --loss_weight_gen_text=0.5 --exp_name=longpara_gloss_0.5 --encoder_type=sen --max_sen_len=4096 --model_name=allenai/longformer-large-4096

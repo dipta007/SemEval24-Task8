@@ -6,9 +6,59 @@ from tqdm import tqdm
 import jsonlines
 import torch
 import random
+import subprocess
+import linecache
+import json
 
 
 MODELS = Enum("MODELS", ['human', 'chatGPT', 'cohere', 'davinci', 'bloomz', 'dolly'], start=0)
+
+
+def get_file_line_count(p):
+    tot = subprocess.check_output(["wc", "-l", p]).decode().strip().split()[0]
+    return int(tot)
+
+def get_file_line(file, line_num):
+    # file is indexed from 1
+    line_num = line_num + 1
+    return linecache.getline(file, line_num).strip()
+
+
+class ContrastiveDataset(torch.utils.data.Dataset):
+    def __init__(self, split):
+        self.split = split
+        self.file = f"./data/SubtaskB/subtaskB_{split}.jsonl"
+        self.number_of_lines = get_file_line_count(self.file)
+
+    def __getitem__(self, index):
+        line = get_file_line(self.file, index)
+        obj = json.loads(line)
+
+        nb = {
+            "pos_id": obj['id'],
+            "pos": obj['text'],
+            "pos_label": obj['label'],
+        }
+
+        neg_id, neg, neg_label = nb["pos_id"], nb['pos'], nb['pos_label']
+
+        while neg_label == nb['pos_label']:
+            neg_index = random.randint(0, self.number_of_lines - 1)
+            neg_line = get_file_line(self.file, neg_index)
+            neg_obj = json.loads(neg_line)
+            neg_id, neg, neg_label = neg_obj['id'], neg_obj['text'], neg_obj['label']
+
+        nb['neg_id'] = neg_id
+        nb['neg'] = neg
+        nb['neg_label'] = neg_label
+
+        return nb
+    
+    def __len__(self):
+        return self.number_of_lines
+
+
+        
 
 class ContrastiveDataModule(pl.LightningDataModule):
     def __init__(self, config):
@@ -17,46 +67,9 @@ class ContrastiveDataModule(pl.LightningDataModule):
         self.tokenizer = AutoTokenizer.from_pretrained(self.config.model_name)
         
     def get_dataset(self, split):
-        seed_data = []
-        with jsonlines.open(f'./data/SubtaskB/subtaskB_{split}.jsonl') as reader:
-            for obj in reader:
-                seed_data.append(obj)
-
-
-        if split == 'dev':
-            random.shuffle(seed_data)
-            seed_data = seed_data[:1000]
-
-        if True or self.config.debug:
-            random.shuffle(seed_data)
-            seed_data = seed_data[:100]
-
-            if split == 'dev':
-                seed_data = seed_data[:10]
-
-        
-        data = []
-        for o1 in tqdm(seed_data, desc=f"Generating {split} dataset"):
-            for o2 in seed_data:
-                if o1['id'] == o2['id']:
-                    continue
-                    
-                if o1['label'] == o2['label']:
-                    continue
-                
-                nb = {
-                    "pos_id": o1['id'],
-                    "neg_id": o2['id'],
-                    "pos": o1['text'],
-                    "neg": o2['text'],
-                    "pos_label": o1['label'],
-                    "neg_label": o2['label'],
-                }
-
-                data.append(nb)
-
-        print(f"Total {split} data: {len(data)}")
-        return data
+        dataset = ContrastiveDataset(split)
+        print(f"Total {split} data: {len(dataset)}")
+        return dataset
 
     def prepare_data(self):
         # download, tokenize, etc...
@@ -66,9 +79,9 @@ class ContrastiveDataModule(pl.LightningDataModule):
     def setup(self, stage='fit'):
         if stage == "fit":
             self.train_dataset = self.get_dataset("train")
-            self.val_dataset = self.get_dataset('dev')
+            self.val_dataset = self.get_dataset('dev_split10')
         elif stage == "test":
-            self.test_dataset = self.get_dataset("all_test")
+            self.test_dataset = self.get_dataset("dev")
         elif stage == "test_final":
             data = []
             with jsonlines.open(f'./data/test_final/subtaskA_monolingual.jsonl') as reader:
