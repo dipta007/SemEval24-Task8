@@ -18,8 +18,8 @@ parameters:
     values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
   cls_dropout:
     values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-  cls_act:
-    values: [relu, tanh]
+  weight_decay:
+    values: [0.1, 0.01, 0.001, 0.0001, 0.00001]
 
 early_terminate:
   type: hyperband
@@ -37,5 +37,4 @@ command:
   - --batch_size=2
   - --max_sen_len=2048
   - --accumulate_grad_batches=16
-  - --weight_decay=0.0
   - --lr=1e-5
