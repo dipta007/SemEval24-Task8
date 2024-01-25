@@ -84,9 +84,17 @@ class ContrastiveDataModule(pl.LightningDataModule):
             self.test_dataset = self.get_dataset("dev")
         elif stage == "test_final":
             data = []
-            with jsonlines.open(f'./data/test_final/subtaskA_monolingual.jsonl') as reader:
+            with jsonlines.open(f'./data/test_final/subtaskB.jsonl') as reader:
                 for obj in reader:
-                    data.append(obj)
+                    nb = {
+                        "pos_id": obj['id'],
+                        "pos": obj['text'],
+                        "pos_label": obj['label'],
+                        "neg_id": obj['id'],
+                        "neg": obj['text'],
+                        "neg_label": obj['label'],
+                    }
+                    data.append(nb)
                 data.append(obj)
             self.test_dataset = data
         else:
