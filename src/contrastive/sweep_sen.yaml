@@ -4,7 +4,7 @@ project: sem8B
 program: train.py
 method: bayes
 metric:
-  name: valid/mean_acc
+  name: valid/mean_acc.max
   goal: maximize
 
 parameters:
