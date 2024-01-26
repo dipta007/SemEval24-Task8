@@ -25,10 +25,8 @@ def add_model_args(parent_parser):
     parser.add_argument("--cls_dropout", type=float, default=0.1, help="CLS dropout?")
     parser.add_argument("--cls_act", type=str, default="tanh", help="CLS activation? [tanh, relu]")
 
-    parser.add_argument("--lw_pos_con", type=float, default=1.0, help="Pos Contrastive loss weight?")
-    parser.add_argument("--lw_neg_con", type=float, default=1.0, help="Neg Contrastive loss weight?")
-    parser.add_argument("--lw_pos_ce", type=float, default=1.0, help="Pos CE loss weight?")
-    parser.add_argument("--lw_neg_ce", type=float, default=1.0, help="Neg CE loss weight?")
+    parser.add_argument("--con_loss_weight", type=float, default=0.5, help="Contrastive loss weight?")
+    parser.add_argument("--ce_loss_weight", type=float, default=0.5, help="Cross entropy loss weight?")
     return parent_parser
 
 def add_trainer_args(parent_parser):

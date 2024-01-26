@@ -8,7 +8,7 @@ from lightning.pytorch.callbacks import (
     ModelCheckpoint,
 )
 from dataloader.doc_sim import ContrastiveDocDataModule
-from dataloader.sen_sim_simple import ContrastiveDataModule
+from dataloader.sen_sim_pair import ContrastiveDataModule
 from model.model import ContrastiveModel
 from lightning.pytorch.loggers import WandbLogger
 import base_config as config
@@ -26,7 +26,7 @@ config.device = "cuda" if device == "gpu" else "cpu"
 
 
 def main():
-    monitoring_metric = "valid/mean_acc"
+    monitoring_metric = "valid/acc"
     monitoring_mode = "max"
     checkpoint_dir = (
         f"/nfs/ada/ferraro/users/sroydip1/semeval24/task8/subtaskB/{config.exp_name}"
@@ -70,7 +70,7 @@ def main():
         loggers = False
 
     if loggers:
-        loggers[0].experiment.define_metric("valid/mean_acc", summary="max")
+        loggers[0].experiment.define_metric("valid/acc", summary="max")
 
     print("Loading data")
     if config.encoder_type == "sen":
@@ -93,6 +93,7 @@ def main():
         accumulate_grad_batches=config.accumulate_grad_batches // config.batch_size if config.batch_size < config.accumulate_grad_batches else 1,
         log_every_n_steps=1,
         overfit_batches=config.overfit if config.overfit != 0 else 0.0,
+        reload_dataloaders_every_n_epochs=1
     )
 
     print("Fitting")

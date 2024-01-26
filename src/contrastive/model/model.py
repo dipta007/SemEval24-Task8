@@ -40,68 +40,68 @@ class ContrastiveModel(pl.LightningModule):
             nn.Linear(sen_encoder.config.hidden_size, len(MODELS)),
         )
 
-        self.contrastive_loss = nn.TripletMarginLoss()
+        self.contrastive_loss = nn.CosineEmbeddingLoss()
         self.ce_loss = nn.CrossEntropyLoss()
 
-    def forward(self, pos, neg, pos_label, neg_label):
-        pos_emb_1 = self.encoder(pos)
-        pos_emb_2 = self.encoder(pos)
+    def forward(self, data):
+        embs = []
+        for d in data:
+            embs.append(self.encoder(d))
 
-        neg_emb_1 = self.encoder(neg)
-        neg_emb_2 = self.encoder(neg)
+        #? Contrastive loss
+        con_loss = 0
+        cnt = 0
+        for i in range(len(embs)):
+            for j in range(i + 1, len(embs)):
+                labels = torch.ones(embs[i].shape[0]).long().to(self.device) * -1
+                con_loss += self.contrastive_loss(embs[i], embs[j], labels)
+                cnt += 1
+        con_loss /= cnt
+        
+        #? Classification loss
+        preds = []
+        for emb in embs:
+            pred = self.classifier(emb)
+            preds.append(pred)
 
-        con_loss_1 = self.contrastive_loss(pos_emb_1, pos_emb_2, neg_emb_1)
-        con_loss_2 = self.contrastive_loss(pos_emb_1, pos_emb_2, neg_emb_2)
-        con_loss_3 = self.contrastive_loss(neg_emb_1, neg_emb_2, pos_emb_1)
-        con_loss_4 = self.contrastive_loss(neg_emb_1, neg_emb_2, pos_emb_2)
+        ce_loss = 0
+        cnt = 0
+        for i in range(len(preds)):
+            labels = torch.ones(preds[i].shape[0]).long().to(self.device) * i
+            ce_loss += self.ce_loss(preds[i], labels)
+            cnt += 1
+        ce_loss /= cnt
 
-        pos_con_loss = (con_loss_1 + con_loss_2) / 2.0
-        neg_con_loss = (con_loss_3 + con_loss_4) / 2.0
-
-        pos_pred_1 = self.classifier(pos_emb_1)
-        pos_pred_2 = self.classifier(pos_emb_2)
-        neg_pred_1 = self.classifier(neg_emb_1)
-        neg_pred_2 = self.classifier(neg_emb_2)
-
-        pos_ce_loss_1 = self.ce_loss(pos_pred_1, pos_label)
-        pos_ce_loss_2 = self.ce_loss(pos_pred_2, pos_label)
-        neg_ce_loss_1 = self.ce_loss(neg_pred_1, neg_label)
-        neg_ce_loss_2 = self.ce_loss(neg_pred_2, neg_label)
-
-        pos_ce_loss = (pos_ce_loss_1 + pos_ce_loss_2) / 2.0
-        neg_ce_loss = (neg_ce_loss_1 + neg_ce_loss_2) / 2.0
-
+        #? Total loss
         loss = (
-            self.config.lw_pos_con * pos_con_loss
-            + self.config.lw_neg_con * neg_con_loss
-            + self.config.lw_pos_ce * pos_ce_loss
-            + self.config.lw_neg_ce * neg_ce_loss
+            self.config.con_loss_weight * con_loss
+            + self.config.ce_loss_weight * ce_loss
         )
 
+        #? Metrics
         log_dict = {
             "loss": loss,
-            "pos_con_loss": pos_con_loss,
-            "neg_con_loss": neg_con_loss,
-            "pos_ce_loss": pos_ce_loss,
-            "neg_ce_loss": neg_ce_loss,
+            "con_loss": con_loss,
+            "ce_loss": ce_loss,
         }
 
-        pos_metrics = self.get_metrics(pos_pred_1, pos_label)
-        neg_metrics = self.get_metrics(neg_pred_1, neg_label)
+        metrics = []
+        for i in range(len(preds)):
+            pred = preds[i]
+            label = torch.ones(pred.shape[0]).long().to(self.device) * i
+            metrics.append(self.get_metrics(pred, label))
 
-        for key, value in pos_metrics.items():
-            log_dict[f"pos_{key}"] = value
-
-        for key, value in neg_metrics.items():
-            log_dict[f"neg_{key}"] = value
-
-        log_dict["mean_acc"] = (pos_metrics["acc"] + neg_metrics["acc"]) / 2.0
+        for key in metrics[0].keys():
+            cum_value = 0
+            for i in range(len(metrics)):
+                cum_value += metrics[i][key]
+            log_dict[f"{key}"] = cum_value / len(metrics)
 
         return loss, log_dict
 
     def training_step(self, batch, batch_idx):
-        pos, neg, pos_label, neg_label, _, _ = batch
-        loss, log_dict = self(pos, neg, pos_label, neg_label)
+        data, _ = batch
+        loss, log_dict = self(data)
 
         for key, value in log_dict.items():
             self.log(
@@ -110,8 +110,8 @@ class ContrastiveModel(pl.LightningModule):
         return loss
 
     def validation_step(self, batch, batch_idx):
-        pos, neg, pos_label, neg_label, _, _ = batch
-        loss, log_dict = self(pos, neg, pos_label, neg_label)
+        data, _ = batch
+        loss, log_dict = self(data)
 
         for key, value in log_dict.items():
             self.log(
@@ -120,15 +120,15 @@ class ContrastiveModel(pl.LightningModule):
         return loss
 
     def predict_step(self, batch, batch_idx):
-        pos, neg, pos_label, neg_label, pos_ids, neg_ids = batch
+        data, ids = batch
 
-        text_embedding = self.encoder(pos)
+        text_embedding = self.encoder(data[0])
         cls = self.classifier(text_embedding)
         cls = torch.softmax(cls, dim=-1)
         cls = torch.argmax(cls, dim=-1)
         cls = cls.view(-1)
         cls = cls.detach().cpu().numpy()
-        return pos_ids, cls
+        return ids[0], cls
 
     def get_metrics(self, preds, labels):
         preds = torch.softmax(preds, dim=-1)

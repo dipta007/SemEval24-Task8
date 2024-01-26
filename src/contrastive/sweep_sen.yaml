@@ -4,22 +4,22 @@ project: sem8B
 program: train.py
 method: bayes
 metric:
-  name: valid/mean_acc.max
+  name: valid/acc.max
   goal: maximize
 
 parameters:
-  lw_pos_con:
+  con_loss_weight:
     values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-  lw_pos_ce:
-    values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-  lw_neg_con:
-    values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-  lw_neg_ce:
+  ce_loss_weight:
     values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
   cls_dropout:
     values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
   weight_decay:
     values: [0.1, 0.01, 0.001, 0.0001, 0.00001]
+  lr:
+    distribution: uniform
+    min: 0.000001
+    max: 0.0001
 
 early_terminate:
   type: hyperband
@@ -37,4 +37,3 @@ command:
   - --batch_size=2
   - --max_sen_len=2048
   - --accumulate_grad_batches=16
-  - --lr=1e-5
