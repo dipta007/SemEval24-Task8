@@ -112,11 +112,15 @@ class ContrastiveModel(pl.LightningModule):
             label = torch.ones(pred.shape[0]).long().to(self.device) * i
             metrics.append(self.get_metrics(pred, label))
 
+        for i in range(len(metrics)):
+            for key, value in metrics[i].items():
+                log_dict[f"{MODELS(i).name}/{key}"] = value
+
         for key in metrics[0].keys():
             cum_value = 0
             for i in range(len(metrics)):
                 cum_value += metrics[i][key]
-            log_dict[f"{key}"] = cum_value / len(metrics)
+            log_dict[f"mean/{key}"] = cum_value / len(metrics)        
 
         return loss, log_dict
 
@@ -168,8 +172,8 @@ class ContrastiveModel(pl.LightningModule):
         labels_flat = labels_flat.astype(int)
 
         acc = accuracy_score(labels_flat, preds_flat)
-        micro_f1 = f1_score(labels_flat, preds_flat, average="micro", zero_division=1)
-        macro_f1 = f1_score(labels_flat, preds_flat, average="macro", zero_division=1)
+        micro_f1 = f1_score(labels_flat, preds_flat, average="micro", zero_division=0)
+        macro_f1 = f1_score(labels_flat, preds_flat, average="macro", zero_division=0)
 
         return {
             "acc": acc,
