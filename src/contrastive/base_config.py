@@ -10,9 +10,9 @@ def add_program_args():
 def add_data_args(parent_parser):
     parser = parent_parser.add_argument_group("Data Config")
     parser.add_argument("--data_dir", type=str, default="./data/", help="Data directory")
-    parser.add_argument("--batch_size", type=int, default=2, help="Batch size?")
+    parser.add_argument("--batch_size", type=int, default=4, help="Batch size?")
     parser.add_argument("--max_doc_len", type=int, default=64, help="Max doc length?")
-    parser.add_argument("--max_sen_len", type=int, default=2048, help="Max sen length?")
+    parser.add_argument("--max_sen_len", type=int, default=1024, help="Max sen length?")
     return parent_parser
 
 def add_model_args(parent_parser):
@@ -20,13 +20,16 @@ def add_model_args(parent_parser):
     parser.add_argument("--exp_name", type=str, default="sem8B", help="Experiement name?", required=True)
     parser.add_argument("--model_name", type=str, default='jpwahle/longformer-base-plagiarism-detection', help="Model name?")
     parser.add_argument("--weight_decay", type=float, default=0.00, help="Weight decay?")
+    
     parser.add_argument("--encoder_type", type=str, default="sen", help="Encoder type? [sen, doc]")
+    parser.add_argument("--enc_dropout", type=float, default=0.1, help="Encoder dropout?")
 
     parser.add_argument("--cls_dropout", type=float, default=0.1, help="CLS dropout?")
     parser.add_argument("--cls_act", type=str, default="tanh", help="CLS activation? [tanh, relu]")
 
-    parser.add_argument("--con_loss_weight", type=float, default=0.5, help="Contrastive loss weight?")
-    parser.add_argument("--ce_loss_weight", type=float, default=0.5, help="Cross entropy loss weight?")
+    parser.add_argument("--ssup_loss_weight", type=float, default=1.0, help="Self-supervised loss weight?")
+    parser.add_argument("--con_loss_weight", type=float, default=1.0, help="Contrastive loss weight?")
+    parser.add_argument("--ce_loss_weight", type=float, default=1.0, help="Cross entropy loss weight?")
     return parent_parser
 
 def add_trainer_args(parent_parser):

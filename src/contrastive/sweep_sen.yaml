@@ -8,14 +8,22 @@ metric:
   goal: maximize
 
 parameters:
+  ssup_loss_weight:
+    values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
   con_loss_weight:
     values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
   ce_loss_weight:
     values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
   cls_dropout:
     values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+  enc_dropout:
+    values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+  accumulate_grad_batches:
+    values: [2, 4, 8, 16, 32]
   weight_decay:
-    values: [0.1, 0.01, 0.001, 0.0001, 0.00001]
+    distribution: uniform
+    min: 0.0
+    max: 0.9
   lr:
     distribution: uniform
     min: 0.000001
@@ -35,5 +43,4 @@ command:
   - --exp_name=sweep
   - --model_name=jpwahle/longformer-base-plagiarism-detection
   - --batch_size=2
-  - --max_sen_len=2048
-  - --accumulate_grad_batches=16
+  - --max_sen_len=1024

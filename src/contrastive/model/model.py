@@ -19,7 +19,7 @@ class ContrastiveModel(pl.LightningModule):
         self.save_hyperparameters()
 
         self.tokenizer = tokenizer
-        sen_encoder = AutoModel.from_pretrained(self.config.model_name)
+        sen_encoder = AutoModel.from_pretrained(self.config.model_name, hidden_dropout_prob=self.config.enc_dropout)
         if self.config.encoder_type == "sen":
             if self.config.model_name.index("longformer") != -1:
                 self.encoder = LongEncoder(config, sen_encoder)
@@ -44,43 +44,61 @@ class ContrastiveModel(pl.LightningModule):
         self.ce_loss = nn.CrossEntropyLoss()
 
     def forward(self, data):
-        embs = []
+        embs_1 = []
         for d in data:
-            embs.append(self.encoder(d))
+            embs_1.append(self.encoder(d))
+
+        embs_2 = []
+        for d in data:
+            embs_2.append(self.encoder(d))
+
+        preds = []
+        for emb in embs_1:
+            pred = self.classifier(emb)
+            preds.append(pred)
+        for emb in embs_2:
+            pred = self.classifier(emb)
+            preds.append(pred)
+        
+        #? Self-supervised loss
+        ssup_loss = 0
+        cnt = 0
+        for i in range(len(embs_1)):
+            labels = torch.ones(embs_1[i].shape[0]).long().to(self.device)
+            ssup_loss += self.contrastive_loss(embs_1[i], embs_2[i], labels)
+            cnt += 1
+        ssup_loss /= cnt
 
         #? Contrastive loss
         con_loss = 0
         cnt = 0
-        for i in range(len(embs)):
-            for j in range(i + 1, len(embs)):
-                labels = torch.ones(embs[i].shape[0]).long().to(self.device) * -1
-                con_loss += self.contrastive_loss(embs[i], embs[j], labels)
+        for i in range(len(embs_1)):
+            for j in range(i + 1, len(embs_1)):
+                labels = torch.ones(embs_1[i].shape[0]).long().to(self.device) * -1
+                con_loss += self.contrastive_loss(embs_1[i], embs_1[j], labels)
                 cnt += 1
         con_loss /= cnt
         
         #? Classification loss
-        preds = []
-        for emb in embs:
-            pred = self.classifier(emb)
-            preds.append(pred)
-
         ce_loss = 0
         cnt = 0
         for i in range(len(preds)):
-            labels = torch.ones(preds[i].shape[0]).long().to(self.device) * i
+            labels = torch.ones(preds[i].shape[0]).long().to(self.device) * (i % len(MODELS))
             ce_loss += self.ce_loss(preds[i], labels)
             cnt += 1
         ce_loss /= cnt
 
         #? Total loss
         loss = (
-            self.config.con_loss_weight * con_loss
+            self.config.ssup_loss_weight * ssup_loss
+            + self.config.con_loss_weight * con_loss
             + self.config.ce_loss_weight * ce_loss
         )
 
         #? Metrics
         log_dict = {
             "loss": loss,
+            "ssup_loss": ssup_loss,
             "con_loss": con_loss,
             "ce_loss": ce_loss,
         }
