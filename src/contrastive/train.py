@@ -31,7 +31,7 @@ def main():
     checkpoint_dir = (
         f"/nfs/ada/ferraro/users/sroydip1/semeval24/task8/subtaskB/{config.exp_name}"
     )
-    if config.exp_name != 'sweep':
+    if config.exp_name != "sweep":
         shutil.rmtree(checkpoint_dir, ignore_errors=True)
 
     L.seed_everything(config.seed)
@@ -45,7 +45,7 @@ def main():
             monitor=f"{monitoring_metric}",
             mode=monitoring_mode,
             verbose=True,
-            save_top_k=(1 if config.exp_name != 'sweep' else 0),
+            save_top_k=(1 if config.exp_name != "sweep" else 0),
             save_on_train_epoch_end=False,
             enable_version_counter=False,
         ),
@@ -63,7 +63,7 @@ def main():
             entity="gcnssdvae",
             project="sem8B",
             log_model=False,
-            name=config.exp_name if config.exp_name != 'sweep' else None,
+            name=config.exp_name if config.exp_name != "sweep" else None,
         )
     ]
     if config.debug:
@@ -83,14 +83,18 @@ def main():
     print("Loading model")
     model = ContrastiveModel(config, datamodule.tokenizer)
     print("Training")
+    strategy = "ddp_find_unused_parameters_true" if config.ddp else "auto"
     trainer = pl.Trainer(
         accelerator=device,
+        strategy=strategy,
         logger=loggers,
         callbacks=callbacks,
         fast_dev_run=False,
         val_check_interval=config.validate_every,
         max_epochs=config.max_epochs,
-        accumulate_grad_batches=config.accumulate_grad_batches // config.batch_size if config.batch_size < config.accumulate_grad_batches else 1,
+        accumulate_grad_batches=config.accumulate_grad_batches // config.batch_size
+        if config.batch_size < config.accumulate_grad_batches
+        else 1,
         log_every_n_steps=1,
         overfit_batches=config.overfit if config.overfit != 0 else 0.0,
         reload_dataloaders_every_n_epochs=1
@@ -98,7 +102,6 @@ def main():
 
     print("Fitting")
     trainer.fit(model=model, datamodule=datamodule)
-
 
 
 if __name__ == "__main__":

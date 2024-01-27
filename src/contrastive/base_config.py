@@ -12,7 +12,7 @@ def add_data_args(parent_parser):
     parser.add_argument("--data_dir", type=str, default="./data/", help="Data directory")
     parser.add_argument("--batch_size", type=int, default=2, help="Batch size?")
     parser.add_argument("--max_doc_len", type=int, default=64, help="Max doc length?")
-    parser.add_argument("--max_sen_len", type=int, default=2048, help="Max sen length?")
+    parser.add_argument("--max_sen_len", type=int, default=1024, help="Max sen length?")
     return parent_parser
 
 def add_model_args(parent_parser):
@@ -27,6 +27,9 @@ def add_model_args(parent_parser):
     parser.add_argument("--cls_dropout", type=float, default=0.1, help="CLS dropout?")
     parser.add_argument("--cls_act", type=str, default="tanh", help="CLS activation? [tanh, relu]")
 
+    parser.add_argument("--normalization", type=str, default="none", help="Normalization? [before, after, none]")
+    parser.add_argument("--ssup", type=int, default=1, help="Self-supervised?")
+
     parser.add_argument("--ssup_loss_weight", type=float, default=1.0, help="Self-supervised loss weight?")
     parser.add_argument("--con_loss_weight", type=float, default=1.0, help="Contrastive loss weight?")
     parser.add_argument("--ce_loss_weight", type=float, default=1.0, help="Cross entropy loss weight?")
@@ -39,6 +42,7 @@ def add_trainer_args(parent_parser):
     parser.add_argument("--lr", type=float, default=1e-5, help="Learning rate")
     parser.add_argument("--accumulate_grad_batches", type=int, default=16, help="Number of accumulation of grad batches")
     parser.add_argument("--overfit", type=int, default=0, help="Overfit batches")
+    parser.add_argument("--ddp", type=bool, default=False, action=argparse.BooleanOptionalAction, help="Use DDP?")
     return parent_parser
 
 def get_config():

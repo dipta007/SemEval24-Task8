@@ -8,8 +8,10 @@ metric:
   goal: maximize
 
 parameters:
-  ssup_loss_weight:
-    values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+  ssup:
+    values: [0, 1]
+  normalization:
+    values: ["none", "before", "after"]
   con_loss_weight:
     values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
   ce_loss_weight:
@@ -31,7 +33,7 @@ parameters:
 
 early_terminate:
   type: hyperband
-  min_iter: 4
+  min_iter: 2
   eta: 2
 
 command:
@@ -42,5 +44,6 @@ command:
   - --encoder_type=sen
   - --exp_name=sweep
   - --model_name=jpwahle/longformer-base-plagiarism-detection
-  - --batch_size=2
-  - --max_sen_len=2048
+  - --batch_size=1
+  - --max_sen_len=1024
+  - --ddp
