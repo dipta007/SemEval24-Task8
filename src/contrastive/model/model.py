@@ -44,38 +44,22 @@ class ContrastiveModel(pl.LightningModule):
         self.ce_loss = nn.CrossEntropyLoss()
 
     def forward(self, data):
-        embs_1 = []
+        embs = []
         for d in data:
-            embs_1.append(self.encoder(d))
-
-        embs_2 = []
-        for d in data:
-            embs_2.append(self.encoder(d))
+            embs.append(self.encoder(d))
 
         preds = []
-        for emb in embs_1:
+        for emb in embs:
             pred = self.classifier(emb)
             preds.append(pred)
-        for emb in embs_2:
-            pred = self.classifier(emb)
-            preds.append(pred)
-        
-        #? Self-supervised loss
-        ssup_loss = 0
-        cnt = 0
-        for i in range(len(embs_1)):
-            labels = torch.ones(embs_1[i].shape[0]).long().to(self.device)
-            ssup_loss += self.contrastive_loss(embs_1[i], embs_2[i], labels)
-            cnt += 1
-        ssup_loss /= cnt
 
         #? Contrastive loss
         con_loss = 0
         cnt = 0
-        for i in range(len(embs_1)):
-            for j in range(i + 1, len(embs_1)):
-                labels = torch.ones(embs_1[i].shape[0]).long().to(self.device) * -1
-                con_loss += self.contrastive_loss(embs_1[i], embs_1[j], labels)
+        for i in range(len(embs)):
+            for j in range(i + 1, len(embs)):
+                labels = torch.ones(embs[i].shape[0]).long().to(self.device) * -1
+                con_loss += self.contrastive_loss(embs[i], embs[j], labels)
                 cnt += 1
         con_loss /= cnt
         
@@ -90,15 +74,13 @@ class ContrastiveModel(pl.LightningModule):
 
         #? Total loss
         loss = (
-            self.config.ssup_loss_weight * ssup_loss
-            + self.config.con_loss_weight * con_loss
+            self.config.con_loss_weight * con_loss
             + self.config.ce_loss_weight * ce_loss
         )
 
         #? Metrics
         log_dict = {
             "loss": loss,
-            "ssup_loss": ssup_loss,
             "con_loss": con_loss,
             "ce_loss": ce_loss,
         }
