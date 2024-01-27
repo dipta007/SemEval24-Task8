@@ -26,7 +26,7 @@ config.device = "cuda" if device == "gpu" else "cpu"
 
 
 def main():
-    monitoring_metric = "valid/acc"
+    monitoring_metric = "valid/mean/acc"
     monitoring_mode = "max"
     checkpoint_dir = (
         f"/nfs/ada/ferraro/users/sroydip1/semeval24/task8/subtaskB/{config.exp_name}"
@@ -70,7 +70,7 @@ def main():
         loggers = False
 
     if loggers:
-        loggers[0].experiment.define_metric("valid/acc", summary="max")
+        loggers[0].experiment.define_metric("valid/mean/acc", summary="max")
 
     print("Loading data")
     if config.encoder_type == "sen":
