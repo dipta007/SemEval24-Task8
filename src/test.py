@@ -3,9 +3,9 @@ import jsonlines
 import torch
 from model.model import ContrastiveModel
 import os
+from pprint import pprint
 import lightning.pytorch as pl
 from dataloader.sen_sim import ContrastiveDataModule
-from dataloader.doc_sim import ContrastiveDocDataModule
 
 
 ROOT_DIR = "/nfs/ada/ferraro/users/sroydip1/semeval24/task8/checkpoints"
@@ -37,17 +37,13 @@ model = ContrastiveModel.load_from_checkpoint(
 config = model.config
 config.batch_size = 16
 
-print(config)
+
+print("==>Config: ")
+pprint(vars(config))
+print("="*50)
 
 model.eval()
-
-if config.encoder_type == "doc":
-    datamodule = ContrastiveDocDataModule(config)
-elif config.encoder_type == "sen":
-    datamodule = ContrastiveDataModule(config)
-else:
-    raise ValueError(f"Invalid encoder type: {config.encoder_type}")
-
+datamodule = ContrastiveDataModule(config)
 datamodule.setup("test_final")
 
 trainer = pl.Trainer()
@@ -67,10 +63,14 @@ predicitons = torch.cat(predicitons)
 print(ids.shape)
 print(predicitons.shape)
 
-with jsonlines.open(f"./final/final2_{exp_name}.jsonl", "w") as writer:
+with jsonlines.open(f"./tmp_{exp_name}.jsonl", "w") as writer:
     for id, pred in zip(ids, predicitons):
         writer.write({"id": id.item(), "label": pred.item()})
 
+# for test
+cmd = f"PYTHONPATH=../ python ./subtaskA/scorer/scorer.py --pred_file_path=./tmp_{exp_name}.jsonl --gold_file_path=./data/aug_data/SubtaskA/monolingual/ibm/test.jsonl"
 
-cmd = f"PYTHONPATH=../../ python ../../subtaskA/scorer/scorer.py --pred_file_path=./final/final_{exp_name}.jsonl --gold_file_path=./data/SubtaskA/monolingual/ibm/test.jsonl"
+# for test_final
+cmd = f"PYTHONPATH=../ python ./subtaskA/scorer/scorer.py --pred_file_path=./tmp_{exp_name}.jsonl --gold_file_path=./data/SubtaskA/subtaskA_test_monolingual.jsonl"
+
 os.system(cmd)

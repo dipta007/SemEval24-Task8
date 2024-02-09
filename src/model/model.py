@@ -2,11 +2,8 @@ import torch
 from torch import nn
 import lightning.pytorch as pl
 from transformers import AutoModel
-from .encoder import Encoder
-from .doc_encoder import DocEncoder
 from .long_encoder import LongEncoder
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-import numpy as np
 
 THRSHOLD = 0.5
 
@@ -19,16 +16,8 @@ class ContrastiveModel(pl.LightningModule):
 
         self.tokenizer = tokenizer
         sen_encoder = AutoModel.from_pretrained(self.config.model_name)
-        if self.config.encoder_type == "sen":
-            if self.config.model_name.index("longformer") != -1:
-                self.encoder = LongEncoder(config, sen_encoder)
-            else:
-                self.encoder = Encoder(config, sen_encoder)
-        elif self.config.encoder_type == "doc":
-            doc_encoder = AutoModel.from_pretrained(self.config.model_name)
-            self.encoder = DocEncoder(config, sen_encoder, doc_encoder)
-        else:
-            raise ValueError("Encoder type not found")
+        self.encoder = LongEncoder(config, sen_encoder)
+
         self.classifier = nn.Sequential(
             nn.Dropout(self.config.cls_dropout),
             nn.Linear(sen_encoder.config.hidden_size, sen_encoder.config.hidden_size), nn.Tanh(),

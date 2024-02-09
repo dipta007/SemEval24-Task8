@@ -36,7 +36,7 @@ def get_paraphase_whole(paragraph):
     return paraphase
 
 def process_data():
-    with jsonlines.open('../../data/SubtaskA/subtaskA_train_monolingual.jsonl') as reader:
+    with jsonlines.open('../data/SubtaskA/subtaskA_train_monolingual.jsonl') as reader:
         data = []
         for obj in tqdm(reader, total=119757):
             x = obj['text']
@@ -45,14 +45,14 @@ def process_data():
         
         random.shuffle(data)
         Y = [obj['label'] for obj in data]
-        train, val = train_test_split(data, test_size=0.5, random_state=RANDOM_SEED, stratify=Y)
+        train, val = train_test_split(data, test_size=0.9, random_state=RANDOM_SEED, stratify=Y)
         print("Train size: ", len(train))
         print("Val size: ", len(val))
 
-        os.makedirs('./data/SubtaskA', exist_ok=True)
-        with jsonlines.open('./data/SubtaskA/subtaskA_train_monolingual_gen.jsonl', mode='w') as writer:
+        os.makedirs('../data/aug_data/SubtaskA', exist_ok=True)
+        with jsonlines.open('../data/aug_data/SubtaskA/subtaskA_train_monolingual_gen.jsonl', mode='w') as writer:
             writer.write_all(train)
-        with jsonlines.open('./data/SubtaskA/subtaskA_val_monolingual_gen.jsonl', mode='w') as writer:
+        with jsonlines.open('../data/aug_data/SubtaskA/subtaskA_val_monolingual_gen.jsonl', mode='w') as writer:
             writer.write_all(val)
 
 

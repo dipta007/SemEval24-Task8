@@ -1,20 +1,24 @@
 #!/bin/bash
+
 #SBATCH --mail-type=ALL                         # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=sroydip1+ada@umbc.edu       # Where to send mail
 #SBATCH -D .
-#SBATCH --job-name="jupyter"
-#SBATCH --output=log/output/jupyter.log
-#SBATCH --error=log/error/jupyter.err
+#SBATCH --job-name="sem8"
+#SBATCH --output=run/sem8.log
+#SBATCH --error=run/sem8.err
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
 #SBATCH --mem=40000
 #SBATCH --time=240:00:00
+#SBATCH --constraint=rtx_6000                   # NULL (12GB), rtx_6000 (24GB), rtx_8000 (48GB)
 
-port=8888
-node=$(hostname -s)
-user=$(whoami)
-
-
-jupyter-lab --no-browser --port=${port} --ip=${node}
-
-# ssh -N -L <local_port>:<node_nodelist(g12)>:<port> <user>@<server>
+v=$(git status --porcelain | wc -l)
+if [[ $v -gt 200 ]]; then
+    echo "Error: uncommited changes" >&2
+    exit 1
+else
+    echo "Success: No uncommited changes"
+    # echo "CMD:" $@ ++debug=False
+    # $@ ++debug=False
+    ./train.sh $@
+fi
