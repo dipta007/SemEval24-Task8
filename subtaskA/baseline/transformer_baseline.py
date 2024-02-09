@@ -38,7 +38,7 @@ def compute_metrics(eval_pred):
     return results
 
 
-def fine_tune(train_df, valid_df, checkpoints_path, id2label, label2id, model):
+def fine_tune(train_df, valid_df, checkpoints_path, id2label, label2id, model, batch_size):
 
     # pandas dataframe to huggingface Dataset
     train_dataset = Dataset.from_pandas(train_df)
@@ -62,8 +62,8 @@ def fine_tune(train_df, valid_df, checkpoints_path, id2label, label2id, model):
     training_args = TrainingArguments(
         output_dir=checkpoints_path,
         learning_rate=2e-5,
-        per_device_train_batch_size=16,
-        per_device_eval_batch_size=16,
+        per_device_train_batch_size=batch_size,
+        per_device_eval_batch_size=batch_size,
         num_train_epochs=3,
         weight_decay=0.01,
         evaluation_strategy="epoch",
@@ -135,6 +135,7 @@ if __name__ == '__main__':
     parser.add_argument("--model", "-m", required=True, help="Transformer to train and test", type=str)
     # roberta-large or xlm-roberta-large
     parser.add_argument("--prediction_file_path", "-p", required=True, help="Path where to save the prediction file.", type=str)
+    parser.add_argument("--batch_size", "-bsz", default=2, help="Batch size for training", type=int)
 
     args = parser.parse_args()
 
@@ -170,7 +171,7 @@ if __name__ == '__main__':
     train_df, valid_df, test_df = get_data(train_path, test_path, random_seed)
     
     # train detector model
-    fine_tune(train_df, valid_df, f"{model}/subtask{subtask}/{random_seed}", id2label, label2id, model)
+    fine_tune(train_df, valid_df, f"{model}/subtask{subtask}/{random_seed}", id2label, label2id, model, args.batch_size)
 
     # test detector model
     results, predictions = test(test_df, f"{model}/subtask{subtask}/{random_seed}/best/", id2label, label2id)
