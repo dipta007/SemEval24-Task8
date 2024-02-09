@@ -3,7 +3,7 @@ from tqdm.auto import tqdm
 
 
 CMD = """
-python baseline/transformer_baseline.py -tr ../data/SubtaskA/subtaskA_train_monolingual.jsonl -t ../data/SubtaskA/subtaskA_test_monolingual.jsonl -p ../data/out/baselines/{file_path}.jsonl -sb A -m={model_name} -bsz={batch_size} > ./score/{model_name}.log
+python baseline/transformer_baseline.py -tr ../data/SubtaskA/subtaskA_train_monolingual.jsonl -t ../data/SubtaskA/subtaskA_test_monolingual.jsonl -p ../data/out/baselines/{filename}.jsonl -sb A -m={model_name} -bsz={batch_size} > ./score/{filename}.log
 """
 
 MODELS = [
@@ -24,10 +24,11 @@ for model_name in tqdm(MODELS):
         batch_size = 8 if "large" in model_name else 16
         batch_size = 2 if "longformer" in model_name else batch_size
 
-        cmd = CMD.format(file_path=model_name.replace("/", "_"), model_name=model_name, batch_size=batch_size)
+        cmd = CMD.format(filename=model_name.replace("/", "_"), model_name=model_name, batch_size=batch_size)
         print(model_name)
         os.system(cmd)
         os.system(f"rm -rf ./{model_name}")
+        os.system(f"rm -rf ../{model_name}")
     except Exception as e:
         print(f"Error in {model_name}: {e}")
 
