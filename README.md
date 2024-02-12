@@ -5,7 +5,7 @@ best_2
 ## Hyperparameters:
 ```
  'accumulate_grad_batches': 16,
- 'batch_size': 16,
+ 'batch_size': 2,
  'cls_dropout': 0.6,
  'cuda': True,
  'data_dir': './data/',

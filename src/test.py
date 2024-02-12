@@ -35,6 +35,10 @@ model = ContrastiveModel.load_from_checkpoint(
 )
 
 config = model.config
+print("="*50)
+print("==>Config: ")
+pprint(vars(config))
+print("="*50)
 config.batch_size = 16
 
 

@@ -63,6 +63,7 @@ def main():
             project="sem8",
             log_model=False,
             name=config.exp_name if config.exp_name != 'sweep' else None,
+            tags=["paper"],
         )
     ]
     if config.debug:

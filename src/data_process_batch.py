@@ -51,7 +51,7 @@ def get_paraphase_whole(paragraph, real2para):
 
 def process_data():
     start = time.time()
-    with jsonlines.open('../data/SubtaskA/subtaskA_train_monolingual.jsonl') as reader:
+    with jsonlines.open('./data/SubtaskA/subtaskA_train_monolingual.jsonl') as reader:
         all_lines = []
         for obj in tqdm(reader, total=119757):
             all_lines.extend(get_all_lines(obj['text']))
