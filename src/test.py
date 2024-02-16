@@ -64,12 +64,14 @@ ids = torch.cat(ids)
 predicitons = torch.cat(predicitons)
 
 
-print(ids.shape)
-print(predicitons.shape)
+# print(ids.shape)
+# print(predicitons.shape)
 
 with jsonlines.open(f"./tmp_{exp_name}.jsonl", "w") as writer:
     for id, pred in zip(ids, predicitons):
         writer.write({"id": id.item(), "label": pred.item()})
+
+print(f"==>Scoring for {exp_name}")
 
 # for test
 cmd = f"PYTHONPATH=../ python ./subtaskA/scorer/scorer.py --pred_file_path=./tmp_{exp_name}.jsonl --gold_file_path=./data/aug_data/SubtaskA/monolingual/ibm/test.jsonl"
@@ -77,4 +79,7 @@ cmd = f"PYTHONPATH=../ python ./subtaskA/scorer/scorer.py --pred_file_path=./tmp
 # for test_final
 cmd = f"PYTHONPATH=../ python ./subtaskA/scorer/scorer.py --pred_file_path=./tmp_{exp_name}.jsonl --gold_file_path=./data/SubtaskA/subtaskA_test_monolingual.jsonl"
 
+cmd += f" > ./data/final_test/{exp_name}.txt"
 os.system(cmd)
+print("="*50)
+print()
