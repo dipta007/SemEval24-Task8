@@ -16,7 +16,7 @@ class ContrastiveDataModule(pl.LightningDataModule):
         
     def get_dataset(self, split):
         data = []
-        with jsonlines.open(f'./data/aug_data/SubtaskA/monolingual/ibm/{split}.jsonl') as reader:
+        with jsonlines.open(f'./data/{split}.jsonl') as reader:
             for obj in reader:
                 obj['label'] = -1 if obj['label'] == HUMAN else 1
                 obj['gen_text'] = obj['gen_text'] if "gen_text" in obj else ""

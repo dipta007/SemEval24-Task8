@@ -74,7 +74,7 @@ with jsonlines.open(f"./tmp_{exp_name}.jsonl", "w") as writer:
 print(f"==>Scoring for {exp_name}")
 
 # for test
-cmd = f"PYTHONPATH=../ python ./subtaskA/scorer/scorer.py --pred_file_path=./tmp_{exp_name}.jsonl --gold_file_path=./data/aug_data/SubtaskA/monolingual/ibm/test.jsonl"
+cmd = f"PYTHONPATH=../ python ./subtaskA/scorer/scorer.py --pred_file_path=./tmp_{exp_name}.jsonl --gold_file_path=./data/test.jsonl"
 
 # for test_final
 cmd = f"PYTHONPATH=../ python ./subtaskA/scorer/scorer.py --pred_file_path=./tmp_{exp_name}.jsonl --gold_file_path=./data/SubtaskA/subtaskA_test_monolingual.jsonl"
